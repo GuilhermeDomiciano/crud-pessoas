@@ -1,17 +1,20 @@
 from fastapi import FastAPI
-import motor.motor_asyncio
-import os
-from dotenv import load_dotenv
-from pathlib import Path
+
+from db.database import db_client
+
 
 app = FastAPI()
+client = db_client()
+db = client["test_database"]
 
-env_path = Path(__file__).resolve().parents[1] / ".env"
-load_dotenv(dotenv_path=env_path)
-
-MONGODB_URI = os.getenv("MONGODB_URI")
-client = motor.motor_asyncio.AsyncIOMotorClient(MONGODB_URI)
 
 @app.get("/health")
 def ler_raiz():
     return {"Status": "Ok"}
+
+
+@app.get("/ping")
+async def ping():
+    result = await db.command("ping")
+    return result
+    
