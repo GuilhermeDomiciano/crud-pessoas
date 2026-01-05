@@ -1,11 +1,16 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from db.database import get_db, get_client, ensure_indexes
 
-from db.database import db_client
+db = get_db()
 
-
-app = FastAPI()
-client = db_client()
-db = client["test_database"]
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await ensure_indexes(db)
+    yield
+    get_client().close()
+    
+app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/health")
