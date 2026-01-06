@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from settings import settings
 from db.database import get_db, get_client, ensure_indexes
-
+from routers.health_route import router as health_router
 db = get_db()
 
 @asynccontextmanager
@@ -10,16 +11,10 @@ async def lifespan(app: FastAPI):
     yield
     get_client().close()
     
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
+@app.get("/", tags=["Root"])
+async def root():
+    return {"message": "Bem vindo a minha API de CRUD de pessoas!"}
 
-@app.get("/health")
-def ler_raiz():
-    return {"Status": "Ok"}
-
-
-@app.get("/ping")
-async def ping():
-    result = await db.command("ping")
-    return result
-    
+app.include_router(health_router)
