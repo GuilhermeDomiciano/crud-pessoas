@@ -1,22 +1,22 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from utils import now_utc
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 
 class PersonCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=120)
     email: EmailStr
-    birth_date: Optional[date] = None
+    birth_date: date | None = None
 
 
 class PersonUpdate(BaseModel):
-    name: Optional[str] = Field(None, min_length=2, max_length=120)
-    email: Optional[EmailStr] = None
-    birth_date: Optional[date] = None
+    name: str | None = Field(None, min_length=2, max_length=120)
+    email: EmailStr | None = None
+    birth_date: date | None = None
 
 
 class PersonOut(BaseModel):
@@ -25,7 +25,7 @@ class PersonOut(BaseModel):
     id: str
     name: str
     email: EmailStr
-    birth_date: Optional[date] = None
+    birth_date: date | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -36,6 +36,6 @@ class PersonInDB(BaseModel):
     id: str = Field(..., alias="_id")
     name: str
     email: EmailStr
-    birth_date: Optional[date] = None
+    birth_date: date | None = None
     created_at: datetime = Field(default_factory=now_utc)
     updated_at: datetime = Field(default_factory=now_utc)

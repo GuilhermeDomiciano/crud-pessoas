@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import motor.motor_asyncio
 from pymongo import ASCENDING, DESCENDING
+
 from settings import settings
 
 _client: motor.motor_asyncio.AsyncIoMotorClient | None = None

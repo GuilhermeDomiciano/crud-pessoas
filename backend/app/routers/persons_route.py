@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 
-from services.person_service import PersonService, get_person_service
 from model.person import PersonCreate, PersonUpdate
-
+from services.person_service import PersonService, get_person_service
 
 router = APIRouter(prefix="/persons", tags=["persons"])
 

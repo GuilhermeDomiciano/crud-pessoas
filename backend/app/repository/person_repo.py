@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 from fastapi import Depends
 from pymongo import ReturnDocument
@@ -18,7 +18,7 @@ class PersonRepository:
         birth_date = data.get("birth_date")
         if isinstance(birth_date, date) and not isinstance(birth_date, datetime):
             data["birth_date"] = datetime(
-                birth_date.year, birth_date.month, birth_date.day, tzinfo=timezone.utc
+                birth_date.year, birth_date.month, birth_date.day, tzinfo=UTC
             )
         now = now_utc()
         data["created_at"] = now
@@ -54,7 +54,7 @@ class PersonRepository:
         birth_date = data.get("birth_date")
         if isinstance(birth_date, date) and not isinstance(birth_date, datetime):
             data["birth_date"] = datetime(
-                birth_date.year, birth_date.month, birth_date.day, tzinfo=timezone.utc
+                birth_date.year, birth_date.month, birth_date.day, tzinfo=UTC
             )
         data["updated_at"] = now_utc()
         updated = await self._collection.find_one_and_update(

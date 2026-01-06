@@ -1,9 +1,11 @@
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
-from settings import settings
-from db.database import get_db, get_client, ensure_indexes
+
+from db.database import ensure_indexes, get_client, get_db
 from routers.health_route import router as health_router
 from routers.persons_route import router as persons_router
+from settings import settings
 
 db = get_db()
 

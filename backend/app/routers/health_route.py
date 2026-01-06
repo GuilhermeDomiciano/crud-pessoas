@@ -2,7 +2,6 @@ from fastapi import APIRouter
 
 from db.database import get_client
 
-
 router = APIRouter(prefix="/health", tags=["health"])
 
 

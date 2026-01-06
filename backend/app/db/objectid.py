@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
+
 from bson import ObjectId
 
 
@@ -10,7 +11,7 @@ def to_object_id(id_str: str) -> ObjectId:
     return ObjectId(id_str)
 
 
-def doc_to_public(doc: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+def doc_to_public(doc: dict[str, Any] | None) -> dict[str, Any] | None:
     if doc is None:
         return None
     doc["id"] = str(doc["_id"])
@@ -18,5 +19,5 @@ def doc_to_public(doc: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     return doc
 
 
-def docs_to_public(docs: list[Dict[str, Any]]) -> list[Dict[str, Any]]:
+def docs_to_public(docs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [doc_to_public(d) for d in docs if d is not None]
