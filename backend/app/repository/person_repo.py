@@ -2,12 +2,11 @@ from datetime import UTC, date, datetime
 
 from bson import ObjectId
 from fastapi import Depends
+from pydantic import ValidationError
 from pymongo import ReturnDocument
 
 from db.database import get_db
-from db.objectid import doc_to_public, docs_to_public, to_object_id
-from pydantic import ValidationError
-
+from db.objectid import doc_to_public, to_object_id
 from model.person import PersonCreate, PersonInDB, PersonUpdate
 from utils import now_utc
 

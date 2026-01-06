@@ -27,3 +27,11 @@ def doc_to_public(doc: dict[str, Any] | None) -> dict[str, Any] | None:
 
 def docs_to_public(docs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [doc_to_public(d) for d in docs if d is not None]
+
+
+def subdoc_to_public(doc: dict[str, Any] | None) -> dict[str, Any] | None:
+    if doc is None:
+        return None
+    if "_id" in doc and doc["_id"] is not None:
+        doc["_id"] = str(doc["_id"])
+    return doc
