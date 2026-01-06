@@ -5,13 +5,20 @@ from pymongo import ReturnDocument
 
 from db.database import get_db
 from db.objectid import doc_to_public, docs_to_public, to_object_id
-from model.person import PersonCreate, PersonUpdate
+from model.person import PersonCreate, PersonInDB, PersonUpdate
 from utils import now_utc
 
 
 class PersonRepository:
     def __init__(self, db):
         self._collection = db.person
+
+    @staticmethod
+    def _to_public(doc):
+        if doc is None:
+            return None
+        validated = PersonInDB.model_validate(doc).model_dump(by_alias=True)
+        return doc_to_public(validated)
 
     async def criar_pessoa(self, person: PersonCreate):
         data = person.model_dump()
@@ -25,7 +32,7 @@ class PersonRepository:
         data["updated_at"] = now
         result = await self._collection.insert_one(data)
         created = await self._collection.find_one({"_id": result.inserted_id})
-        return doc_to_public(created)
+        return self._to_public(created)
 
     async def listar_pessoas(
         self,
@@ -40,13 +47,16 @@ class PersonRepository:
         if email:
             query["email"] = {"$regex": email, "$options": "i"}
         cursor = self._collection.find(query).skip(skip).limit(limit)
-        persons = [person async for person in cursor]
+        persons = [
+            PersonInDB.model_validate(person).model_dump(by_alias=True)
+            async for person in cursor
+        ]
         return docs_to_public(persons)
 
     async def obter_pessoa(self, id: str):
         obj_id = to_object_id(id)
         person = await self._collection.find_one({"_id": obj_id})
-        return doc_to_public(person)
+        return self._to_public(person)
 
     async def atualizar_pessoa(self, person_id: str, person_data: PersonUpdate):
         obj_id = to_object_id(person_id)
@@ -62,12 +72,12 @@ class PersonRepository:
             {"$set": data},
             return_document=ReturnDocument.AFTER,
         )
-        return doc_to_public(updated)
+        return self._to_public(updated)
 
     async def deletar_pessoa(self, id: str):
         obj_id = to_object_id(id)
         deleted = await self._collection.find_one_and_delete({"_id": obj_id})
-        return doc_to_public(deleted)
+        return self._to_public(deleted)
 
 
 def get_person_repository(db=Depends(get_db)) -> PersonRepository:

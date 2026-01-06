@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, Query
 
-from model.person import PersonCreate, PersonUpdate
+from model.person import PersonCreate, PersonOut, PersonUpdate
 from services.person_service import PersonService, get_person_service
 
 router = APIRouter(prefix="/persons", tags=["persons"])
 
 
-@router.post("/")
+@router.post("/", response_model=PersonOut)
 async def adicionar_pessoa(
     person: PersonCreate,
     service: PersonService = Depends(get_person_service),
@@ -14,7 +14,7 @@ async def adicionar_pessoa(
     return await service.criar_pessoa(person)
 
 
-@router.get("/")
+@router.get("/", response_model=list[PersonOut])
 async def listar_pessoas(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
@@ -30,7 +30,7 @@ async def listar_pessoas(
     )
 
 
-@router.get("/{id}")
+@router.get("/{id}", response_model=PersonOut)
 async def obter_pessoa(
     id: str,
     service: PersonService = Depends(get_person_service),
@@ -38,7 +38,7 @@ async def obter_pessoa(
     return await service.obter_pessoa(id)
 
 
-@router.patch("/{id}")
+@router.patch("/{id}", response_model=PersonOut)
 async def atualizar_pessoa(
     id: str,
     person: PersonUpdate,
