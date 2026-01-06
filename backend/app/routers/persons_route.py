@@ -22,8 +22,15 @@ async def adicionar_pessoa(person: PersonCreate):
 async def listar_pessoas(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
+    name: str | None = None,
+    email: str | None = None,
 ):
-    return await listar_pessoas_service(skip=skip, limit=limit)
+    return await listar_pessoas_service(
+        skip=skip,
+        limit=limit,
+        name=name,
+        email=email,
+    )
 
 @router.get("/{id}")
 async def obter_pessoa(id: str):

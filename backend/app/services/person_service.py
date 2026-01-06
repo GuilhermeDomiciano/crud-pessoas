@@ -20,9 +20,14 @@ async def criar_pessoa_service(person: PersonCreate):
     except Exception as exc:
         raise server_error() from exc
     
-async def listar_pessoas_service(skip: int = 0, limit: int = 50):
+async def listar_pessoas_service(
+    skip: int = 0,
+    limit: int = 50,
+    name: str | None = None,
+    email: str | None = None,
+):
     try:
-        return await listar_pessoas(skip=skip, limit=limit)
+        return await listar_pessoas(skip=skip, limit=limit, name=name, email=email)
     except Exception as exc:
         raise server_error() from exc
 

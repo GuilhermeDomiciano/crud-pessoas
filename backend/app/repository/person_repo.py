@@ -22,9 +22,19 @@ async def criar_pessoa(person: PersonCreate):
     created = await db.person.find_one({"_id": result.inserted_id})
     return doc_to_public(created)
 
-async def listar_pessoas(skip: int = 0, limit: int = 50):
+async def listar_pessoas(
+    skip: int = 0,
+    limit: int = 50,
+    name: str | None = None,
+    email: str | None = None,
+):
     db = get_db()
-    cursor = db.person.find().skip(skip).limit(limit)
+    query: dict = {}
+    if name:
+        query["name"] = {"$regex": name, "$options": "i"}
+    if email:
+        query["email"] = {"$regex": email, "$options": "i"}
+    cursor = db.person.find(query).skip(skip).limit(limit)
     persons = [person async for person in cursor]
     return docs_to_public(persons)
 
