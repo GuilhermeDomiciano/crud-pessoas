@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from model.phone import PhoneIn, PhoneInDB, PhoneOut
 from bson import ObjectId
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from model.address import AddressIn, AddressInDB, AddressOut
+from model.phone import PhoneIn, PhoneInDB, PhoneOut
 from utils import now_utc
 
 

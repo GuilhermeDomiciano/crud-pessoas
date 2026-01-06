@@ -1,7 +1,6 @@
 from fastapi import Depends
 
 from errors import bad_request, not_found
-
 from model.address import AddressBase, AddressOut
 from repository.address_repo import AddressRepository, get_address_repository
 
@@ -9,7 +8,7 @@ from repository.address_repo import AddressRepository, get_address_repository
 class AddressService:
     def __init__(self, repo: AddressRepository):
         self._repo = repo
-    
+
     async def criar_enderecos(
         self,
         id_person: str,

@@ -3,9 +3,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from db.database import ensure_indexes, get_client, get_db
+from routers.addresses_route import router as address_router
 from routers.health_route import router as health_router
 from routers.persons_route import router as persons_router
-from routers.addresses_route import router as address_router
 from settings import settings
 
 db = get_db()

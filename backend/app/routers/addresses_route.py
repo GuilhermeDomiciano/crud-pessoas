@@ -1,5 +1,6 @@
-from model.address import AddressBase, AddressOut
 from fastapi import APIRouter, Depends
+
+from model.address import AddressBase, AddressOut
 from services.address_service import AddressService, get_address_service
 
 router = APIRouter(prefix="/persons/{id}/addresses", tags=["addresses"])

@@ -12,7 +12,7 @@ from utils import now_utc
 class AddressRepository:
     def __init__(self, db):
         self._collection = db.person
-        
+
     @staticmethod
     def _to_public(doc):
         if doc is None:
@@ -22,7 +22,7 @@ class AddressRepository:
         except ValidationError:
             return None
         return subdoc_to_public(validated)
-    
+
     async def criar_enderecos(
         self,
         id_person: str,
@@ -54,6 +54,6 @@ class AddressRepository:
             if public is not None:
                 results.append(public)
         return results
-    
+
 def get_address_repository(db=Depends(get_db)) -> AddressRepository:
     return AddressRepository(db)
