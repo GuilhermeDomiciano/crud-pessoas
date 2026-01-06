@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Optional
 
-from app.utils import now_utc
+from utils import now_utc
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 class PersonCreate(BaseModel):

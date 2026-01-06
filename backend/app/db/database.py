@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from dotenv import load_dotenv
-from pathlib import Path
 import motor.motor_asyncio
-import os
 from pymongo import ASCENDING, DESCENDING
 from settings import settings
 

@@ -3,6 +3,8 @@ from fastapi import FastAPI
 from settings import settings
 from db.database import get_db, get_client, ensure_indexes
 from routers.health_route import router as health_router
+from routers.persons_route import router as persons_router
+
 db = get_db()
 
 @asynccontextmanager
@@ -18,3 +20,4 @@ async def root():
     return {"message": "Bem vindo a minha API de CRUD de pessoas!"}
 
 app.include_router(health_router)
+app.include_router(persons_router)
