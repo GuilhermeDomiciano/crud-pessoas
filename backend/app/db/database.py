@@ -32,6 +32,6 @@ async def ensure_indexes(db) -> None:
     )
 
     await person.create_index(
-        [("created_at", DESCENDING)],
-        name="idx_person_created_at",
+        [("createdAt", DESCENDING)],
+        name="idx_person_createdAt",
     )

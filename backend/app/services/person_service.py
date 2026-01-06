@@ -22,14 +22,16 @@ class PersonService:
         self,
         skip: int = 0,
         limit: int = 50,
-        name: str | None = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
         email: str | None = None,
     ):
         try:
             return await self._repo.listar_pessoas(
                 skip=skip,
                 limit=limit,
-                name=name,
+                first_name=first_name,
+                last_name=last_name,
                 email=email,
             )
         except Exception as exc:

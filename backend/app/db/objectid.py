@@ -14,6 +14,12 @@ def to_object_id(id_str: str) -> ObjectId:
 def doc_to_public(doc: dict[str, Any] | None) -> dict[str, Any] | None:
     if doc is None:
         return None
+    for key in ("addresses", "phoneNumbers"):
+        items = doc.get(key)
+        if isinstance(items, list):
+            for item in items:
+                if isinstance(item, dict) and "_id" in item and item["_id"] is not None:
+                    item["_id"] = str(item["_id"])
     doc["id"] = str(doc["_id"])
     doc.pop("_id", None)
     return doc

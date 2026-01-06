@@ -55,7 +55,7 @@ Base URL: `http://localhost:8000`
 - `GET /health/ping` - healthcheck com ping no MongoDB.
 
 - `POST /persons/` - cria pessoa.
-- `GET /persons/` - lista pessoas (query: `skip`, `limit`, `name`, `email`).
+- `GET /persons/` - lista pessoas (query: `skip`, `limit`, `firstName`, `lastName`, `email`).
 - `GET /persons/{id}` - busca por id.
 - `PATCH /persons/{id}` - update parcial.
 - `DELETE /persons/{id}` - remove pessoa.
@@ -66,9 +66,23 @@ Criar pessoa:
 
 ```json
 {
-  "name": "Maria Silva",
+  "firstName": "Maria",
+  "lastName": "Silva",
   "email": "maria@example.com",
-  "birth_date": "1995-02-10"
+  "documentNumber": "12345678900",
+  "dateOfBirth": "1995-02-10",
+  "addresses": [
+    {
+      "line1": "Rua A, 123",
+      "city": "Sao Paulo"
+    }
+  ],
+  "phoneNumbers": [
+    {
+      "type": "mobile",
+      "number": "11999990000"
+    }
+  ]
 }
 ```
 
@@ -76,12 +90,12 @@ Update parcial:
 
 ```json
 {
-  "name": "Maria Souza"
+  "lastName": "Souza"
 }
 ```
 
 Filtro de lista (exemplo):
 
 ```
-GET /persons/?skip=0&limit=20&name=maria&email=@example.com
+GET /persons/?skip=0&limit=20&firstName=maria&email=@example.com
 ```
