@@ -1,12 +1,6 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
-from services.person_service import (
-    criar_pessoa_service, 
-    listar_pessoas_service, 
-    obter_pessoa_service,
-    atualizar_pessoa_service,
-    deletar_pessoa_service
-    )
+from services.person_service import PersonService, get_person_service
 from model.person import PersonCreate, PersonUpdate
 
 
@@ -14,9 +8,11 @@ router = APIRouter(prefix="/persons", tags=["persons"])
 
 
 @router.post("/")
-async def adicionar_pessoa(person: PersonCreate):
-    created = await criar_pessoa_service(person)
-    return created
+async def adicionar_pessoa(
+    person: PersonCreate,
+    service: PersonService = Depends(get_person_service),
+):
+    return await service.criar_pessoa(person)
 
 @router.get("/")
 async def listar_pessoas(
@@ -24,8 +20,9 @@ async def listar_pessoas(
     limit: int = Query(50, ge=1, le=100),
     name: str | None = None,
     email: str | None = None,
+    service: PersonService = Depends(get_person_service),
 ):
-    return await listar_pessoas_service(
+    return await service.listar_pessoas(
         skip=skip,
         limit=limit,
         name=name,
@@ -33,14 +30,24 @@ async def listar_pessoas(
     )
 
 @router.get("/{id}")
-async def obter_pessoa(id: str):
-    return await obter_pessoa_service(id)
+async def obter_pessoa(
+    id: str,
+    service: PersonService = Depends(get_person_service),
+):
+    return await service.obter_pessoa(id)
 
 @router.patch("/{id}")
-async def atualizar_pessoa(id: str, person: PersonUpdate):
-    return await atualizar_pessoa_service(id, person)
+async def atualizar_pessoa(
+    id: str,
+    person: PersonUpdate,
+    service: PersonService = Depends(get_person_service),
+):
+    return await service.atualizar_pessoa(id, person)
 
 @router.delete("/{id}")
-async def deletar_pessoa(id: str):
-    await deletar_pessoa_service(id)
+async def deletar_pessoa(
+    id: str,
+    service: PersonService = Depends(get_person_service),
+):
+    await service.deletar_pessoa(id)
     return {"message": "Pessoa removida com sucesso."}
