@@ -5,9 +5,11 @@ from db.database import get_client
 
 router = APIRouter(prefix="/health", tags=["health"])
 
+
 @router.get("/")
 async def health():
     return {"status": "ok"}
+
 
 @router.get("/ping")
 async def ping():

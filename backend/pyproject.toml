@@ -1,0 +1,22 @@
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+src = ["app", "tests"]
+exclude = [".venv", "__pycache__", ".pytest_cache"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+no_implicit_optional = true
+check_untyped_defs = false
+ignore_missing_imports = true
+exclude = "(^\\.venv/|^\\.pytest_cache/|^__pycache__/)"

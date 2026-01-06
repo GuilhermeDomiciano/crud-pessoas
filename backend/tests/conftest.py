@@ -14,7 +14,7 @@ sys.path.insert(0, str(APP_DIR))
 TEST_DB_NAME = f"test_persons_{uuid.uuid4().hex}"
 os.environ["MONGODB_DB"] = TEST_DB_NAME
 
-from db.database import get_client, get_db, ensure_indexes 
+from db.database import get_client, get_db, ensure_indexes
 
 
 @pytest.fixture(scope="module")

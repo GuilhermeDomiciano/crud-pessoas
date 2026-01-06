@@ -14,6 +14,7 @@ async def adicionar_pessoa(
 ):
     return await service.criar_pessoa(person)
 
+
 @router.get("/")
 async def listar_pessoas(
     skip: int = Query(0, ge=0),
@@ -29,12 +30,14 @@ async def listar_pessoas(
         email=email,
     )
 
+
 @router.get("/{id}")
 async def obter_pessoa(
     id: str,
     service: PersonService = Depends(get_person_service),
 ):
     return await service.obter_pessoa(id)
+
 
 @router.patch("/{id}")
 async def atualizar_pessoa(
@@ -43,6 +46,7 @@ async def atualizar_pessoa(
     service: PersonService = Depends(get_person_service),
 ):
     return await service.atualizar_pessoa(id, person)
+
 
 @router.delete("/{id}")
 async def deletar_pessoa(

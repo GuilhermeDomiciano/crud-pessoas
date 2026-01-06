@@ -6,6 +6,7 @@ from settings import settings
 
 _client: motor.motor_asyncio.AsyncIoMotorClient | None = None
 
+
 def get_client() -> motor.motor_asyncio.AsyncIOMotorClient:
     global _client
     if _client is None:
@@ -15,8 +16,10 @@ def get_client() -> motor.motor_asyncio.AsyncIOMotorClient:
         _client = motor.motor_asyncio.AsyncIOMotorClient(uri)
     return _client
 
+
 def get_db():
     return get_client()[settings.mongo_db]
+
 
 async def ensure_indexes(db) -> None:
     person = db["person"]
@@ -26,7 +29,7 @@ async def ensure_indexes(db) -> None:
         unique=True,
         name="uniq_person_email",
     )
-    
+
     await person.create_index(
         [("created_at", DESCENDING)],
         name="idx_person_created_at",
