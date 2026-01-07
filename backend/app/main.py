@@ -6,6 +6,7 @@ from db.database import ensure_indexes, get_client, get_db
 from routers.addresses_route import router as address_router
 from routers.health_route import router as health_router
 from routers.persons_route import router as persons_router
+from routers.phones_route import router as phones_router
 from settings import settings
 
 db = get_db()
@@ -29,3 +30,4 @@ async def root():
 app.include_router(health_router)
 app.include_router(persons_router)
 app.include_router(address_router)
+app.include_router(phones_router)

@@ -8,6 +8,9 @@ class PhoneBase(BaseModel):
     type: str = Field(..., min_length=2, max_length=40)
     number: str = Field(..., min_length=6, max_length=30)
 
+class PhoneUpdate(BaseModel):
+    type: str | None = Field(None, min_length=2, max_length=40)
+    number: str | None = Field(None, min_length=6, max_length=30)
 
 class PhoneIn(PhoneBase):
     model_config = ConfigDict(populate_by_name=True)
