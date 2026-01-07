@@ -7,18 +7,8 @@ from typing import Any
 DEFAULT_SENSITIVE_FIELDS = {
     "documentnumber",
     "email",
-    "password",
-    "token",
-    "accesstoken",
-    "refreshtoken",
-    "authorization",
-    "apikey",
-    "secret",
-    "ssn",
-    "cpf",
-    "cnpj",
-    "phone",
-    "phonenumber",
+    "number",
+    "phonenumbers",
 }
 
 

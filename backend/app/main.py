@@ -9,6 +9,7 @@ from db.database import (
     get_db,
     get_logs_db,
 )
+from middleware.request_logger import RequestLoggerMiddleware
 from routers.addresses_route import router as address_router
 from routers.health_route import router as health_router
 from routers.persons_route import router as persons_router
@@ -27,6 +28,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
+app.add_middleware(RequestLoggerMiddleware)
 
 
 @app.get("/", tags=["Root"])
