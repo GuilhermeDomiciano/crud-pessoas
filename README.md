@@ -34,6 +34,9 @@ Arquivo: `backend/.env`
 
 - `MONGODB_URI` (obrigatoria) - string de conexao do MongoDB.
 - `MONGODB_DB` (opcional) - nome do banco, padrao `personal_db`.
+- `MONGODB_LOGS_DB` (opcional) - nome do banco de logs, padrao `app_logs`.
+- `LOG_TTL_DAYS` (opcional) - dias para expirar logs, padrao `30`.
+- `LOG_BODY_MAX_BYTES` (opcional) - limite de bytes do body logado, padrao `10240`.
 - `APP_HOST` (opcional) - usado apenas no exemplo de `.env`.
 - `APP_PORT` (opcional) - usado apenas no exemplo de `.env`.
 
@@ -42,6 +45,9 @@ Exemplo:
 ```
 MONGODB_URI=mongodb://root:root@localhost:27017/personal_db?authSource=admin
 MONGODB_DB=personal_db
+MONGODB_LOGS_DB=app_logs
+LOG_TTL_DAYS=30
+LOG_BODY_MAX_BYTES=10240
 APP_HOST=0.0.0.0
 APP_PORT=8000
 ```
