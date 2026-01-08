@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 
+from auth.dependencies import require_scopes
 from model.address import AddressBase, AddressOut, AddressUpdate
 from services.address_service import AddressService, get_address_service
 
@@ -14,6 +15,7 @@ async def adicionar_enderecos(
     id: str,
     addresses: list[AddressBase],
     service: AddressService = Depends(get_address_service),
+    principal: dict = Depends(require_scopes(["persons:write"])),
 ):
     return await service.criar_enderecos(id, addresses)
 
@@ -28,6 +30,7 @@ async def atualizar_endereco(
     addressId: str,
     address: AddressUpdate,
     service: AddressService = Depends(get_address_service),
+    principal: dict = Depends(require_scopes(["persons:write"])),
 ):
     return await service.atualizar_endereco(id, addressId, address)
 
@@ -37,6 +40,7 @@ async def deletar_endereco(
     id: str,
     addressId: str,
     service: AddressService = Depends(get_address_service),
+    principal: dict = Depends(require_scopes(["persons:write"])),
 ):
     await service.deletar_endereco(id, addressId)
     return {"message": "Endereço removido com sucesso."}

@@ -26,6 +26,6 @@ async def emitir_token(payload: TokenRequest):
     roles = []
     if settings.auth_roles:
         roles = [r.strip() for r in settings.auth_roles.split(",") if r.strip()]
-    extra = {"roles": roles} if roles else None
+    extra = {"scopes": roles} if roles else None
     token = encode_jwt(subject=settings.auth_user, extra=extra)
     return {"access_token": token, "token_type": "bearer"}

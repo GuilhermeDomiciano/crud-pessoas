@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 
+from auth.dependencies import require_scopes
 from model.person import PersonCreate, PersonOut, PersonUpdate
 from services.person_service import PersonService, get_person_service
 
@@ -10,6 +11,7 @@ router = APIRouter(prefix="/persons", tags=["persons"])
 async def adicionar_pessoa(
     person: PersonCreate,
     service: PersonService = Depends(get_person_service),
+    principal: dict = Depends(require_scopes(["persons:write"])),
 ):
     return await service.criar_pessoa(person)
 
@@ -22,6 +24,7 @@ async def listar_pessoas(
     lastName: str | None = None,
     email: str | None = None,
     service: PersonService = Depends(get_person_service),
+    principal: dict = Depends(require_scopes(["persons:read"])),
 ):
     return await service.listar_pessoas(
         skip=skip,
@@ -36,6 +39,7 @@ async def listar_pessoas(
 async def obter_pessoa(
     id: str,
     service: PersonService = Depends(get_person_service),
+    principal: dict = Depends(require_scopes(["persons:read"])),
 ):
     return await service.obter_pessoa(id)
 
@@ -45,6 +49,7 @@ async def atualizar_pessoa(
     id: str,
     person: PersonUpdate,
     service: PersonService = Depends(get_person_service),
+    principal: dict = Depends(require_scopes(["persons:write"])),
 ):
     return await service.atualizar_pessoa(id, person)
 
@@ -53,6 +58,7 @@ async def atualizar_pessoa(
 async def deletar_pessoa(
     id: str,
     service: PersonService = Depends(get_person_service),
+    principal: dict = Depends(require_scopes(["persons:write"])),
 ):
     await service.deletar_pessoa(id)
     return {"message": "Pessoa removida com sucesso."}

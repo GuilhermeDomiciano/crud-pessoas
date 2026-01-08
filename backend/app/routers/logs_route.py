@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
 
+from auth.dependencies import require_scopes
 from repository.log_repo import LogRepository, get_log_repository
 from services.log_service import LogService
 
@@ -44,6 +45,7 @@ async def listar_logs_pessoa(
     url: str | None = None,
     eventType: str | None = None,
     service: LogService = Depends(get_log_service),
+    principal: dict = Depends(require_scopes(["persons:read"])),
 ):
     return await service.listar_logs(
         limit=limit,

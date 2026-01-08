@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import jwt
@@ -9,7 +9,7 @@ from settings import settings
 
 
 def encode_jwt(subject: str, extra: dict[str, Any] | None = None) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if not settings.jwt_secret:
         raise ValueError("JWT_SECRET is not configured")
     payload: dict[str, Any] = {

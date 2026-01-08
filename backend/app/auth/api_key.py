@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from __future__ import annotations
-
 import hashlib
 import hmac
 
@@ -33,10 +31,7 @@ async def _is_valid_api_key_db(key: str) -> bool:
 
 def _is_valid_api_key_env(key: str) -> bool:
     keys = _parse_keys(settings.api_keys)
-    for stored in keys:
-        if hmac.compare_digest(key, stored):
-            return True
-    return False
+    return any(hmac.compare_digest(key, stored) for stored in keys)
 
 
 async def is_valid_api_key(key: str | None) -> bool:
