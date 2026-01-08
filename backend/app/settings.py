@@ -18,5 +18,11 @@ class Settings(BaseSettings):
     log_ttl_days: int = Field(default=30, validation_alias="LOG_TTL_DAYS")
     log_body_max_bytes: int = Field(default=10_240, validation_alias="LOG_BODY_MAX_BYTES")
 
+    auth_mode: str = Field(default="OFF", validation_alias="AUTH_MODE")
+    jwt_secret: str | None = Field(default=None, validation_alias="JWT_SECRET")
+    jwt_alg: str = Field(default="HS256", validation_alias="JWT_ALG")
+    jwt_expires_min: int = Field(default=60, validation_alias="JWT_EXPIRES_MIN")
+    api_keys: str | None = Field(default=None, validation_alias="API_KEYS")
+
 
 settings = Settings()

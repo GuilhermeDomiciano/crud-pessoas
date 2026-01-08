@@ -37,6 +37,11 @@ Arquivo: `backend/.env`
 - `MONGODB_LOGS_DB` (opcional) - nome do banco de logs, padrao `app_logs`.
 - `LOG_TTL_DAYS` (opcional) - dias para expirar logs, padrao `30`.
 - `LOG_BODY_MAX_BYTES` (opcional) - limite de bytes do body logado, padrao `10240`.
+- `AUTH_MODE` (opcional) - `OFF`, `API_KEY`, `JWT` ou `BOTH`.
+- `JWT_SECRET` (obrigatoria se `AUTH_MODE=JWT`/`BOTH`).
+- `JWT_ALG` (opcional) - algoritmo JWT, padrao `HS256`.
+- `JWT_EXPIRES_MIN` (opcional) - expira em minutos, padrao `60`.
+- `API_KEYS` (opcional) - lista separada por virgula (ex.: `key1,key2`).
 - `APP_HOST` (opcional) - usado apenas no exemplo de `.env`.
 - `APP_PORT` (opcional) - usado apenas no exemplo de `.env`.
 
@@ -48,6 +53,11 @@ MONGODB_DB=personal_db
 MONGODB_LOGS_DB=app_logs
 LOG_TTL_DAYS=30
 LOG_BODY_MAX_BYTES=10240
+AUTH_MODE=OFF
+JWT_SECRET=5565be7f86e171ec332bf2f30b6f0d3b944a389fc7168b663e693e1b73be69d8
+JWT_ALG=HS256
+JWT_EXPIRES_MIN=60
+API_KEYS=ff63d8d424ad4fff9604b5db91b4da9d,461da3c1d087495389af86c10e492fa4
 APP_HOST=0.0.0.0
 APP_PORT=8000
 ```
