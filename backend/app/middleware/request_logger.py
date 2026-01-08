@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import uuid
 
 from fastapi import Request, Response
@@ -8,9 +9,12 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 
 from db.database import get_logs_db
 from log_utils import mask_sensitive, truncate_body
+from messaging.rabbitmq import publish_log_message
 from model.log_message import LogMessage
 from settings import settings
 from utils import now_utc
+
+logger = logging.getLogger(__name__)
 
 
 class RequestLoggerMiddleware(BaseHTTPMiddleware):
@@ -61,10 +65,30 @@ class RequestLoggerMiddleware(BaseHTTPMiddleware):
         )
         log_doc = log_message.model_dump(by_alias=True, exclude_none=True)
 
+        if settings.logger.upper() != "ON":
+            return response
+
+        mode = settings.logger_mode.upper()
+        if mode == "DISABLE":
+            return response
+
+        if mode == "SYNC":
+            try:
+                logs_db = get_logs_db()
+                await logs_db["request_logs"].insert_one(log_doc)
+            except Exception:
+                logger.exception("Failed to write log to MongoDB")
+            return response
+
         try:
-            logs_db = get_logs_db()
-            await logs_db["request_logs"].insert_one(log_doc)
+            await publish_log_message(log_doc)
         except Exception:
-            pass
+            try:
+                logger.error(
+                    "Failed to publish log message, payload=%s",
+                    json.dumps(log_doc, ensure_ascii=True, separators=(",", ":")),
+                )
+            except Exception:
+                logger.exception("Failed to publish log message")
 
         return response

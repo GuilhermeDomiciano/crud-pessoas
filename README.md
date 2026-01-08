@@ -37,6 +37,12 @@ Arquivo: `backend/.env`
 - `MONGODB_LOGS_DB` (opcional) - nome do banco de logs, padrao `app_logs`.
 - `LOG_TTL_DAYS` (opcional) - dias para expirar logs, padrao `30`.
 - `LOG_BODY_MAX_BYTES` (opcional) - limite de bytes do body logado, padrao `10240`.
+- `RABBITMQ_URL` (opcional) - URL do RabbitMQ (ex.: `amqp://guest:guest@localhost:5672/`).
+- `LOGGER` (opcional) - `ON` ou `OFF` para ativar/desativar logs, padrao `ON`.
+- `LOGGER_MODE` (opcional) - `ASYNC`, `SYNC` ou `DISABLE`.
+  - `ASYNC`: publica na fila RabbitMQ (padrao).
+  - `SYNC`: grava direto no Mongo (debug).
+  - `DISABLE`: nao grava (pode logar no console).
 - `AUTH_MODE` (opcional) - `OFF`, `API_KEY`, `JWT` ou `BOTH`.
 - `JWT_SECRET` (obrigatoria se `AUTH_MODE=JWT`/`BOTH`).
 - `JWT_ALG` (opcional) - algoritmo JWT, padrao `HS256`.
@@ -58,6 +64,9 @@ MONGODB_DB=personal_db
 MONGODB_LOGS_DB=app_logs
 LOG_TTL_DAYS=30
 LOG_BODY_MAX_BYTES=10240
+RABBITMQ_URL=amqp://guest:guest@localhost:5672/
+LOGGER=ON
+LOGGER_MODE=ASYNC
 AUTH_MODE=OFF
 JWT_SECRET=5565be7f86e171ec332bf2f30b6f0d3b944a389fc7168b663e693e1b73be69d8
 JWT_ALG=HS256
