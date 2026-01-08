@@ -1,74 +1,133 @@
-2) Autenticação JWT / API-KEY
-Checkpoint A1 — Infra de auth (config + dependência de autenticação)
+3) RabbitMQ (fila) para escrita assíncrona dos Logs
+
+Objetivo fixo (o seu): middleware publica mensagem; consumer grava no Mongo (logs DB). Consumer liga/desliga por LOGGER (default ON).
+
+Checkpoint Q1 — Infra RabbitMQ + docker-compose
+
+Adicionar RabbitMQ no docker-compose.yml (com management UI)
 
 Variáveis .env:
 
-AUTH_MODE=OFF|API_KEY|JWT|BOTH
+RABBITMQ_URL=amqp://...
 
-JWT_SECRET, JWT_ALG=HS256, JWT_EXPIRES_MIN
+LOGGER=ON|OFF (default ON)
 
-API_KEYS= (ou DB/collection depois)
+LOGGER_MODE=ASYNC|SYNC|DISABLE (recomendado; explica abaixo)
 
-Criar auth/ com:
+Biblioteca de AMQP (ex.: aio-pika se async)
 
-dependencies.py (get_current_principal)
+Checkpoint Q2 — Definir contrato da mensagem de log (schema)
 
-jwt.py (encode/decode/claims)
+Mensagem JSON contendo exatamente o que você quer salvar:
 
-api_key.py (validar header)
+requestTime, responseTime, method, url, statusCode, userAgent, body, params, query, __v
 
-Checkpoint A2 — API-KEY simples (rápido e útil)
+recomendado: durationMs, requestId, ip
 
-Header padrão: X-API-Key: <key>
+Mascarar/limitar:
 
-Comparação segura (timing-safe)
+remover/mascarar Authorization, X-API-Key, senhas
 
-Decidir armazenamento:
+truncar body acima de X KB
 
-versão simples: keys em env
+Checkpoint Q3 — Exchange/Queue durável + persistência
 
-melhor: collection api_keys com hash + status + nome + createdAt
+Criar:
 
-Rate limit fica pra depois; agora só validação e 401
+Exchange (ex.: logs.exchange, type direct)
 
-Checkpoint A3 — JWT (sem sistema de usuários completo ainda)
+Queue (ex.: logs.queue, durable)
 
-Definir claims mínimos:
+Routing key (ex.: logs.write)
 
-sub (id do sujeito), iat, exp, scope/roles (opcional)
+Publicar mensagem como persistente (pra não perder em restart)
 
-Criar endpoint de emissão (mínimo):
+Confirm publisher (garantir que Rabbit aceitou)
 
-POST /auth/token (credencial simples por env ou “usuário fake” por enquanto)
+Checkpoint Q4 — Middleware de logs publica mensagem (sem travar request)
 
-Middleware/Dependency para:
+Middleware captura request/response e monta payload
 
-ler Authorization: Bearer <token>
+Se LOGGER=ON e LOGGER_MODE=ASYNC:
 
-validar assinatura e expiração
+publicar na fila
 
-expor “principal” para a rota
+não escrever no Mongo dentro do request
 
-Checkpoint A4 — Proteção por rota (granular)
+Se publish falhar:
 
-Definir quais rotas são públicas:
+estratégia recomendada: fallback para stdout + “best effort”
 
-/health público
+opcional: fallback SYNC (escreve direto no Mongo) — mas isso volta a gerar gargalo
 
-/docs opcional (ou protegida)
+Sugestão de modos (pra ficar claro)
 
-Proteger /persons/* com auth
+LOGGER_MODE=ASYNC: publica na fila (padrão)
 
-Adicionar “scopes” simples:
+LOGGER_MODE=SYNC: escreve direto no Mongo (debug)
 
-persons:read, persons:write
+LOGGER_MODE=DISABLE: não grava (mas pode logar no console)
 
-checar scope na dependency
+Checkpoint Q5 — Consumer (worker) para gravar no Mongo
 
-Checkpoint A5 — Observabilidade + segurança básica
+Criar serviço logger-consumer (processo separado)
 
-Não logar segredo/token no log (mascarar headers sensíveis)
+Ao iniciar:
 
-Respostas 401/403 padronizadas
+conecta no Rabbit
 
-“Key rotation” (suportar múltiplas API keys ativas)
+consome logs.queue
+
+valida schema mínimo da mensagem
+
+grava na collection request_logs
+
+Ack/Nack correto:
+
+sucesso: ack
+
+falha temporária (Mongo fora): nack com requeue (cuidado com loop)
+
+falha definitiva (mensagem inválida): mandar para DLQ
+
+Checkpoint Q6 — DLQ + retry controlado
+
+Configurar Dead Letter Exchange/Queue:
+
+logs.dlx + logs.dlq
+
+Retry com limite:
+
+usar header x-death do RabbitMQ para contar tentativas
+
+após N tentativas, mandar para DLQ
+
+Criar endpoint/admin simples:
+
+GET /logs/dlq (opcional) ou script pra inspecionar
+
+Checkpoint Q7 — Toggle do consumer via env LOGGER
+
+LOGGER=OFF:
+
+consumer nem inicia (no compose, escala 0 ou não sobe o serviço)
+
+middleware decide o que fazer:
+
+LOGGER_MODE=DISABLE (não grava)
+
+ou SYNC (grava direto)
+
+Documentar no README:
+
+como ligar/desligar
+
+como rodar consumer separado
+
+Checkpoint Q8 — Métricas mínimas de saúde do pipeline
+
+Health check do Rabbit (no app e no consumer)
+
+Logar tamanho da fila (opcional)
+
+Alarmes manuais: se DLQ crescer, tem bug/instabilidade

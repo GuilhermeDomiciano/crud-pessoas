@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     log_ttl_days: int = Field(default=30, validation_alias="LOG_TTL_DAYS")
     log_body_max_bytes: int = Field(default=10_240, validation_alias="LOG_BODY_MAX_BYTES")
 
+    rabbitmq_url: str | None = Field(default=None, validation_alias="RABBITMQ_URL")
+    logger: str = Field(default="ON", validation_alias="LOGGER")
+    logger_mode: str = Field(default="ASYNC", validation_alias="LOGGER_MODE")
+
     auth_mode: str = Field(default="OFF", validation_alias="AUTH_MODE")
     jwt_secret: str | None = Field(default=None, validation_alias="JWT_SECRET")
     jwt_alg: str = Field(default="HS256", validation_alias="JWT_ALG")
