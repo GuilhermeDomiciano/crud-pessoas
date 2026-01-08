@@ -4,7 +4,11 @@ import json
 from typing import Any
 
 from aio_pika import DeliveryMode, ExchangeType, Message, connect_robust
-from aio_pika.abc import AbstractRobustChannel, AbstractRobustConnection, AbstractRobustExchange
+from aio_pika.abc import (
+    AbstractRobustChannel,
+    AbstractRobustConnection,
+    AbstractRobustExchange,
+)
 
 from settings import settings
 
