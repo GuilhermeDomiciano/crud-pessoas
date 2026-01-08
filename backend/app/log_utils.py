@@ -8,14 +8,9 @@ DEFAULT_SENSITIVE_FIELDS = {
     "documentnumber",
     "email",
     "number",
+    "password",
     "phonenumbers",
-}
-
-SENSITIVE_HEADERS = {
-    "authorization",
-    "x-api-key",
-    "cookie",
-    "set-cookie",
+    "senha",
 }
 
 
@@ -61,23 +56,3 @@ def truncate_body(body: Any, max_bytes: int) -> tuple[Any, bool, int]:
     truncated = raw[:max_bytes].decode("utf-8", errors="ignore")
     return {"_truncated": True, "value": truncated}, True, size
 
-
-def extract_error(status_code: int, response_body: Any) -> dict[str, Any] | None:
-    if status_code < 400:
-        return None
-    message = None
-    if isinstance(response_body, dict):
-        message = response_body.get("detail") or response_body.get("message")
-    elif isinstance(response_body, str):
-        message = response_body
-    return {"code": status_code, "message": message}
-
-
-def mask_headers(headers: dict[str, str]) -> dict[str, str]:
-    masked = {}
-    for key, value in headers.items():
-        if key.lower() in SENSITIVE_HEADERS:
-            masked[key] = "***"
-        else:
-            masked[key] = value
-    return masked

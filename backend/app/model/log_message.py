@@ -6,10 +6,9 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class RequestLog(BaseModel):
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+class LogMessage(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
 
-    id: str | None = Field(default=None, alias="_id")
     requestTime: datetime
     responseTime: datetime
     method: str
@@ -20,6 +19,6 @@ class RequestLog(BaseModel):
     params: dict[str, Any] | None = None
     query: dict[str, Any] | None = None
     durationMs: float | None = None
-    ip: str | None = None
     requestId: str | None = None
+    ip: str | None = None
     logVersion: int | None = Field(default=None, alias="__v")
