@@ -10,6 +10,8 @@ from settings import settings
 
 def encode_jwt(subject: str, extra: dict[str, Any] | None = None) -> str:
     now = datetime.now(timezone.utc)
+    if not settings.jwt_secret:
+        raise ValueError("JWT_SECRET is not configured")
     payload: dict[str, Any] = {
         "sub": subject,
         "iat": int(now.timestamp()),
@@ -21,4 +23,6 @@ def encode_jwt(subject: str, extra: dict[str, Any] | None = None) -> str:
 
 
 def decode_jwt(token: str) -> dict[str, Any]:
+    if not settings.jwt_secret:
+        raise ValueError("JWT_SECRET is not configured")
     return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_alg])

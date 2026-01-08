@@ -11,6 +11,7 @@ from db.database import (
 )
 from middleware.request_logger import RequestLoggerMiddleware
 from routers.addresses_route import router as address_router
+from routers.auth_route import router as auth_router
 from routers.health_route import router as health_router
 from routers.logs_route import router as logs_router
 from routers.persons_route import router as persons_router
@@ -38,6 +39,7 @@ async def root():
 
 
 app.include_router(health_router)
+app.include_router(auth_router)
 app.include_router(persons_router)
 app.include_router(address_router)
 app.include_router(phones_router)

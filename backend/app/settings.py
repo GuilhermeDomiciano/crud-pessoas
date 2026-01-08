@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     jwt_alg: str = Field(default="HS256", validation_alias="JWT_ALG")
     jwt_expires_min: int = Field(default=60, validation_alias="JWT_EXPIRES_MIN")
     api_keys: str | None = Field(default=None, validation_alias="API_KEYS")
+    auth_user: str | None = Field(default=None, validation_alias="AUTH_USER")
+    auth_password: str | None = Field(default=None, validation_alias="AUTH_PASSWORD")
+    auth_roles: str | None = Field(default=None, validation_alias="AUTH_ROLES")
 
 
 settings = Settings()

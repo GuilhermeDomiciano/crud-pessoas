@@ -43,6 +43,9 @@ Arquivo: `backend/.env`
 - `JWT_EXPIRES_MIN` (opcional) - expira em minutos, padrao `60`.
 - `API_KEYS` (opcional) - lista separada por virgula (ex.: `key1,key2`).
   - Se nao estiver definido, a API usa a collection `api_keys` no Mongo.
+- `AUTH_USER` (opcional) - usuario simples para emitir token.
+- `AUTH_PASSWORD` (opcional) - senha simples para emitir token.
+- `AUTH_ROLES` (opcional) - roles separadas por virgula (ex.: `admin,reader`).
 - `APP_HOST` (opcional) - usado apenas no exemplo de `.env`.
 - `APP_PORT` (opcional) - usado apenas no exemplo de `.env`.
 
@@ -59,6 +62,9 @@ JWT_SECRET=5565be7f86e171ec332bf2f30b6f0d3b944a389fc7168b663e693e1b73be69d8
 JWT_ALG=HS256
 JWT_EXPIRES_MIN=60
 API_KEYS=ff63d8d424ad4fff9604b5db91b4da9d,461da3c1d087495389af86c10e492fa4
+AUTH_USER=admin
+AUTH_PASSWORD=admin
+AUTH_ROLES=admin
 APP_HOST=0.0.0.0
 APP_PORT=8000
 ```
