@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 
 from db.database import (
     ensure_indexes,
@@ -31,6 +32,24 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 app.add_middleware(RequestLoggerMiddleware)
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    if exc.status_code == 401:
+        return JSONResponse(
+            status_code=401,
+            content={"error": {"code": 401, "message": "unauthorized"}},
+        )
+    if exc.status_code == 403:
+        return JSONResponse(
+            status_code=403,
+            content={"error": {"code": 403, "message": "forbidden"}},
+        )
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
 
 
 @app.get("/", tags=["Root"])

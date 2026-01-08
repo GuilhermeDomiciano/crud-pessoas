@@ -11,6 +11,13 @@ DEFAULT_SENSITIVE_FIELDS = {
     "phonenumbers",
 }
 
+SENSITIVE_HEADERS = {
+    "authorization",
+    "x-api-key",
+    "cookie",
+    "set-cookie",
+}
+
 
 def mask_sensitive(
     data: Any,
@@ -64,3 +71,13 @@ def extract_error(status_code: int, response_body: Any) -> dict[str, Any] | None
     elif isinstance(response_body, str):
         message = response_body
     return {"code": status_code, "message": message}
+
+
+def mask_headers(headers: dict[str, str]) -> dict[str, str]:
+    masked = {}
+    for key, value in headers.items():
+        if key.lower() in SENSITIVE_HEADERS:
+            masked[key] = "***"
+        else:
+            masked[key] = value
+    return masked

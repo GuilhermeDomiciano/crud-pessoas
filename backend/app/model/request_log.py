@@ -21,6 +21,7 @@ class RequestLog(BaseModel):
     url: str
     statusCode: int
     userAgent: str | None = None
+    headers: dict[str, str] | None = None
     body: dict[str, Any] | list[Any] | str | None = None
     params: dict[str, Any] | None = None
     query: dict[str, Any] | None = None

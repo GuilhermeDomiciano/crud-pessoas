@@ -42,6 +42,7 @@ Arquivo: `backend/.env`
 - `JWT_ALG` (opcional) - algoritmo JWT, padrao `HS256`.
 - `JWT_EXPIRES_MIN` (opcional) - expira em minutos, padrao `60`.
 - `API_KEYS` (opcional) - lista separada por virgula (ex.: `key1,key2`).
+  - Suporta multiplas chaves ativas (rotacao).
   - Se nao estiver definido, a API usa a collection `api_keys` no Mongo.
 - `AUTH_USER` (opcional) - usuario simples para emitir token.
 - `AUTH_PASSWORD` (opcional) - senha simples para emitir token.

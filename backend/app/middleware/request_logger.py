@@ -7,7 +7,7 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from db.database import get_logs_db
-from log_utils import extract_error, mask_sensitive, truncate_body
+from log_utils import extract_error, mask_headers, mask_sensitive, truncate_body
 from settings import settings
 from utils import now_utc
 
@@ -57,6 +57,7 @@ class RequestLoggerMiddleware(BaseHTTPMiddleware):
             masked_body,
             settings.log_body_max_bytes,
         )
+        headers = mask_headers(dict(request.headers))
 
         log_doc = {
             "requestTime": request_time,
@@ -65,6 +66,7 @@ class RequestLoggerMiddleware(BaseHTTPMiddleware):
             "url": url,
             "statusCode": response.status_code,
             "userAgent": request.headers.get("user-agent"),
+            "headers": headers,
             "body": truncated_body,
             "params": request.path_params or None,
             "query": dict(request.query_params) or None,
