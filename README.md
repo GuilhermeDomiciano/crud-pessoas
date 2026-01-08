@@ -42,6 +42,7 @@ Arquivo: `backend/.env`
 - `JWT_ALG` (opcional) - algoritmo JWT, padrao `HS256`.
 - `JWT_EXPIRES_MIN` (opcional) - expira em minutos, padrao `60`.
 - `API_KEYS` (opcional) - lista separada por virgula (ex.: `key1,key2`).
+  - Se nao estiver definido, a API usa a collection `api_keys` no Mongo.
 - `APP_HOST` (opcional) - usado apenas no exemplo de `.env`.
 - `APP_PORT` (opcional) - usado apenas no exemplo de `.env`.
 

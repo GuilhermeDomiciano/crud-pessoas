@@ -39,6 +39,17 @@ async def ensure_indexes(db) -> None:
         name="idx_person_createdAt",
     )
 
+    api_keys = db["api_keys"]
+    await api_keys.create_index(
+        [("keyHash", ASCENDING)],
+        unique=True,
+        name="uniq_api_key_hash",
+    )
+    await api_keys.create_index(
+        [("status", ASCENDING), ("createdAt", DESCENDING)],
+        name="idx_api_keys_status_createdAt",
+    )
+
 
 async def ensure_log_indexes(db) -> None:
     logs = db["request_logs"]
