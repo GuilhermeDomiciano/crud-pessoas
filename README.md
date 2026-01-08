@@ -10,6 +10,12 @@ API FastAPI para cadastro de pessoas com MongoDB.
 docker compose up -d
 ```
 
+Se quiser usar o pipeline assíncrono de logs, suba o RabbitMQ também (ele já está no compose):
+
+```bash
+docker compose up -d rabbitmq
+```
+
 2) Instale dependencias:
 
 ```bash
@@ -77,6 +83,21 @@ AUTH_PASSWORD=admin
 AUTH_ROLES=admin
 APP_HOST=0.0.0.0
 APP_PORT=8000
+```
+
+## Logs (RabbitMQ)
+
+Ative ou desative o pipeline assíncrono via env:
+
+- `LOGGER=ON` e `LOGGER_MODE=ASYNC` publica na fila.
+- `LOGGER=ON` e `LOGGER_MODE=SYNC` grava direto no Mongo (debug).
+- `LOGGER=OFF` ou `LOGGER_MODE=DISABLE` não grava.
+
+Rodar o consumer separado:
+
+```bash
+cd backend
+python -m app.worker.logger_consumer
 ```
 
 ## Endpoints

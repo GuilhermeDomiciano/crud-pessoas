@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any
 
 from aio_pika import DeliveryMode, ExchangeType, Message, connect_robust
+from aiormq.exceptions import ChannelPreconditionFailed
 from aio_pika.abc import (
     AbstractRobustChannel,
     AbstractRobustConnection,
@@ -15,10 +17,42 @@ from settings import settings
 LOG_EXCHANGE_NAME = "logs.exchange"
 LOG_QUEUE_NAME = "logs.queue"
 LOG_ROUTING_KEY = "logs.write"
+LOG_RETRY_EXCHANGE_NAME = "logs.retry.exchange"
+LOG_RETRY_QUEUE_NAME = "logs.retry.queue"
+LOG_RETRY_ROUTING_KEY = "logs.retry"
+LOG_RETRY_DELAY_MS = 1000
+DLX_NAME = "logs.dlx"
+DLQ_NAME = "logs.dlq"
+DLQ_ROUTING_KEY = "logs.dlq"
 
 _connection: AbstractRobustConnection | None = None
 _channel: AbstractRobustChannel | None = None
 _exchange: AbstractRobustExchange | None = None
+logger = logging.getLogger(__name__)
+
+
+async def _declare_queue_with_recreate(
+    connection: AbstractRobustConnection,
+    channel: AbstractRobustChannel,
+    name: str,
+    **kwargs: Any,
+):
+    try:
+        return channel, await channel.declare_queue(name, **kwargs)
+    except ChannelPreconditionFailed:
+        logger.warning("Recreating queue with new arguments: %s", name)
+        try:
+            tmp = await connection.channel()
+            await tmp.queue_delete(name, if_unused=False, if_empty=False)
+            await tmp.close()
+        except Exception:
+            pass
+        try:
+            if channel.is_closed:
+                channel = await connection.channel(publisher_confirms=True)
+        except Exception:
+            channel = await connection.channel(publisher_confirms=True)
+        return channel, await channel.declare_queue(name, **kwargs)
 
 
 async def init_rabbitmq() -> None:
@@ -34,8 +68,46 @@ async def init_rabbitmq() -> None:
         ExchangeType.DIRECT,
         durable=True,
     )
-    queue = await _channel.declare_queue(LOG_QUEUE_NAME, durable=True)
+    retry_exchange = await _channel.declare_exchange(
+        LOG_RETRY_EXCHANGE_NAME,
+        ExchangeType.DIRECT,
+        durable=True,
+    )
+    _channel, queue = await _declare_queue_with_recreate(
+        _connection,
+        _channel,
+        LOG_QUEUE_NAME,
+        durable=True,
+        arguments={
+            "x-dead-letter-exchange": LOG_RETRY_EXCHANGE_NAME,
+            "x-dead-letter-routing-key": LOG_RETRY_ROUTING_KEY,
+        },
+    )
     await queue.bind(exchange, routing_key=LOG_ROUTING_KEY)
+    _channel, retry_queue = await _declare_queue_with_recreate(
+        _connection,
+        _channel,
+        LOG_RETRY_QUEUE_NAME,
+        durable=True,
+        arguments={
+            "x-message-ttl": LOG_RETRY_DELAY_MS,
+            "x-dead-letter-exchange": LOG_EXCHANGE_NAME,
+            "x-dead-letter-routing-key": LOG_ROUTING_KEY,
+        },
+    )
+    await retry_queue.bind(retry_exchange, routing_key=LOG_RETRY_ROUTING_KEY)
+    dlx = await _channel.declare_exchange(
+        DLX_NAME,
+        ExchangeType.DIRECT,
+        durable=True,
+    )
+    _channel, dlq = await _declare_queue_with_recreate(
+        _connection,
+        _channel,
+        DLQ_NAME,
+        durable=True,
+    )
+    await dlq.bind(dlx, routing_key=DLQ_ROUTING_KEY)
     _exchange = exchange
 
 
