@@ -24,8 +24,9 @@ class Settings(BaseSettings):
 
     redis_url: str | None = Field(default=None, validation_alias="REDIS_URL")
     cache: str = Field(default="OFF", validation_alias="CACHE")
+    redis_timeout_ms: int = Field(default=150, validation_alias="REDIS_TIMEOUT_MS")
     cache_ttl_person_seconds: int = Field(
-        default=300,
+        default=600,
         validation_alias="CACHE_TTL_PERSON_SECONDS",
     )
     cache_ttl_list_seconds: int = Field(

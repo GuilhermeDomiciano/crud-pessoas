@@ -38,3 +38,13 @@ async def rabbit():
         return {"rabbitmq": "disabled"}
     return {"rabbitmq": "ok" if await ping_rabbitmq() else "error"}
 
+
+@router.get("/cache")
+async def cache_health():
+    status = {"cache": settings.cache.lower()}
+    if not settings.redis_url:
+        status["redis"] = "disabled"
+    else:
+        status["redis"] = "ok" if await ping_redis() else "down"
+    return status
+

@@ -1,7 +1,7 @@
-﻿from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException
 from pymongo.errors import DuplicateKeyError
 
-from cache.cache_service import get_json, incr, set_json
+from cache.cache_service import delete, get_json, incr, set_json
 from cache.keys import LIST_VERSION_KEY, person_key, persons_list_key
 from errors import bad_request, conflict, not_found, server_error
 from model.person import PersonCreate, PersonUpdate
@@ -15,7 +15,13 @@ class PersonService:
 
     async def criar_pessoa(self, person: PersonCreate):
         try:
-            return await self._repo.criar_pessoa(person)
+            created = await self._repo.criar_pessoa(person)
+            if settings.cache.upper() == "ON":
+                created_id = created.get("id") if isinstance(created, dict) else None
+                if created_id:
+                    await delete(person_key(created_id))
+                await incr(LIST_VERSION_KEY)
+            return created
         except DuplicateKeyError as exc:
             raise conflict("Email ja cadastrado.") from exc
         except Exception as exc:
@@ -99,6 +105,9 @@ class PersonService:
             updated = await self._repo.atualizar_pessoa(id, person)
             if updated is None:
                 raise not_found("Pessoa nao encontrada.")
+            if settings.cache.upper() == "ON":
+                await delete(person_key(id))
+                await incr(LIST_VERSION_KEY)
             return updated
         except ValueError as exc:
             raise bad_request("id invalido") from exc
@@ -114,6 +123,9 @@ class PersonService:
             deleted = await self._repo.deletar_pessoa(id)
             if deleted is None:
                 raise not_found("Pessoa nao encontrada.")
+            if settings.cache.upper() == "ON":
+                await delete(person_key(id))
+                await incr(LIST_VERSION_KEY)
             return True
         except ValueError as exc:
             raise bad_request("id invalido") from exc
@@ -125,5 +137,3 @@ def get_person_service(
     repo: PersonRepository = Depends(get_person_repository),
 ) -> PersonService:
     return PersonService(repo)
-
-

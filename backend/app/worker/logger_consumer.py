@@ -153,6 +153,7 @@ async def main() -> None:
     await channel.set_qos(prefetch_count=10)
 
     queue, dlx = await _setup_queue(connection, channel)
+    logger.info("logger-consumer is listening")
 
     async with queue.iterator() as queue_iter:
         async for message in queue_iter:

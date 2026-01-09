@@ -5,11 +5,12 @@ import json
 from typing import Any
 
 
-LIST_VERSION_KEY = "persons:list:ver"
+_PREFIX = "app:"
+LIST_VERSION_KEY = f"{_PREFIX}persons:list:ver"
 
 
 def person_key(person_id: str) -> str:
-    return f"person:{person_id}"
+    return f"{_PREFIX}person:{person_id}"
 
 
 def normalize_query(params: dict[str, Any]) -> dict[str, Any]:
@@ -43,4 +44,4 @@ def hash_query(params: dict[str, Any]) -> str:
 
 
 def persons_list_key(version: int, params: dict[str, Any]) -> str:
-    return f"persons:list:v{version}:{hash_query(params)}"
+    return f"{_PREFIX}persons:list:v{version}:{hash_query(params)}"
