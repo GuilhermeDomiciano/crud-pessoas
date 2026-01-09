@@ -3,6 +3,7 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from cache.redis_client import close_redis, init_redis
 from db.database import (
     ensure_indexes,
     ensure_log_indexes,
@@ -11,7 +12,6 @@ from db.database import (
     get_logs_db,
 )
 from messaging.rabbitmq import close_rabbitmq, init_rabbitmq
-from cache.redis_client import close_redis, init_redis
 from middleware.request_logger import RequestLoggerMiddleware
 from routers.addresses_route import router as address_router
 from routers.auth_route import router as auth_router
