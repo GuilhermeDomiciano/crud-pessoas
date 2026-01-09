@@ -1,0 +1,74 @@
+{
+  "examples": [
+    {
+      "firstName": "Maria",
+      "lastName": "Silva",
+      "email": "maria.silva@example.com",
+      "documentNumber": "12345678900",
+      "dateOfBirth": "1995-02-10",
+      "addresses": [
+        {
+          "line1": "Rua A, 123",
+          "line2": "Apto 12",
+          "city": "Sao Paulo",
+          "state": "SP",
+          "postalCode": "01000-000",
+          "country": "BR"
+        }
+      ],
+      "phoneNumbers": [
+        {
+          "type": "mobile",
+          "number": "11999990000"
+        }
+      ]
+    },
+    {
+      "firstName": "Joao",
+      "lastName": "Pereira",
+      "email": "joao.pereira@example.com",
+      "documentNumber": "98765432100",
+      "dateOfBirth": "1988-11-30",
+      "addresses": [
+        {
+          "line1": "Av Brasil, 900",
+          "city": "Rio de Janeiro",
+          "state": "RJ",
+          "postalCode": "20000-000",
+          "country": "BR"
+        },
+        {
+          "line1": "Rua B, 45",
+          "city": "Niteroi",
+          "state": "RJ",
+          "postalCode": "24000-000",
+          "country": "BR"
+        }
+      ],
+      "phoneNumbers": [
+        {
+          "type": "home",
+          "number": "2133334444"
+        },
+        {
+          "type": "mobile",
+          "number": "21988887777"
+        }
+      ]
+    },
+    {
+      "firstName": "Carla",
+      "lastName": "Souza",
+      "email": "carla.souza@example.com",
+      "documentNumber": "11223344556",
+      "dateOfBirth": "1992-05-18",
+      "addresses": [],
+      "phoneNumbers": [
+        {
+          "type": "work",
+          "number": "1130004000"
+        }
+      ]
+    }
+  ]
+}

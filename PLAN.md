@@ -1,52 +1,133 @@
-# Plano de Implementacao - Checkpoint 10 (Person com subdocumentos)
+3) RabbitMQ (fila) para escrita assíncrona dos Logs
 
-Objetivo: refatorar o modelo `Person` para usar `firstName`/`lastName`, adicionar subdocumentos `addresses` e `phoneNumbers`, novos campos, auditoria e soft delete, mantendo conversao de ObjectId para string no output.
+Objetivo fixo (o seu): middleware publica mensagem; consumer grava no Mongo (logs DB). Consumer liga/desliga por LOGGER (default ON).
 
-## Passo 1 - Inventario e impactos
-- Mapear onde o modelo `Person` e usado (model, repo, service, routes, testes).
-- Listar endpoints e payloads atuais para ajustar contratos.
-- Teste rapido: `pytest` (para confirmar baseline antes de mudar).
+Checkpoint Q1 — Infra RabbitMQ + docker-compose
 
-## Passo 2 - Modelos e tipos
-- Atualizar `model/person.py`:
-  - Trocar `name` -> `firstName` e `lastName`.
-  - Adicionar `documentNumber`, `dateOfBirth`.
-  - Criar modelos `Address` e `Phone` (com `_id` por item, e `type` em Phone).
-  - Adicionar `addresses: list[Address]`, `phoneNumbers: list[Phone]`.
-  - Auditoria: `createdAt`, `updatedAt`, `version`, `deletedAt | None`.
-- Decidir formatos (por exemplo `dateOfBirth` como `date`).
+Adicionar RabbitMQ no docker-compose.yml (com management UI)
 
-## Passo 3 - Conversao e ObjectId
-- Atualizar helpers em `db/objectid.py` para:
-  - Converter `_id` de pessoa e `_id` dos subdocs em string no output.
-  - Manter compatibilidade para listas e subdocumentos.
-- Adicionar testes unitarios simples para conversao (se fizer sentido).
+Variáveis .env:
 
-## Passo 4 - Repository
-- Ajustar `repository/person_repo.py`:
-  - Adaptar insercao e update para novos campos.
-  - Setar auditoria (`createdAt`, `updatedAt`, `version`).
-  - Soft delete: setar `deletedAt` ao remover.
-  - Filtragem de listagem: ignorar `deletedAt`.
-  - Gerar `_id` para cada `Address` e `Phone` no create e no update.
+RABBITMQ_URL=amqp://...
 
-## Passo 5 - Services e regras
-- Validar `documentNumber` (se houver regra).
-- Ajustar update parcial para aceitar subdocs.
-- Incrementar `version` a cada update.
+LOGGER=ON|OFF (default ON)
 
-## Passo 6 - Routers e contratos
-- Atualizar schemas de entrada/saida nos endpoints.
-- Revisar exemplos no `README.md`.
+LOGGER_MODE=ASYNC|SYNC|DISABLE (recomendado; explica abaixo)
 
-## Passo 7 - Testes
-- Atualizar testes existentes para os novos campos.
-- Cobrir: create, list, get by id, update parcial, delete (soft), duplicidade (se ainda existir).
-- Testar conversao de `_id` de subdocs no output.
+Biblioteca de AMQP (ex.: aio-pika se async)
 
-## Passo 8 - Validacao final
-- `ruff check .`
-- `pytest`
+Checkpoint Q2 — Definir contrato da mensagem de log (schema)
 
-Notas:
-- Fazer pequenas mudancas por etapa e rodar testes sempre que possivel.
+Mensagem JSON contendo exatamente o que você quer salvar:
+
+requestTime, responseTime, method, url, statusCode, userAgent, body, params, query, __v
+
+recomendado: durationMs, requestId, ip
+
+Mascarar/limitar:
+
+remover/mascarar Authorization, X-API-Key, senhas
+
+truncar body acima de X KB
+
+Checkpoint Q3 — Exchange/Queue durável + persistência
+
+Criar:
+
+Exchange (ex.: logs.exchange, type direct)
+
+Queue (ex.: logs.queue, durable)
+
+Routing key (ex.: logs.write)
+
+Publicar mensagem como persistente (pra não perder em restart)
+
+Confirm publisher (garantir que Rabbit aceitou)
+
+Checkpoint Q4 — Middleware de logs publica mensagem (sem travar request)
+
+Middleware captura request/response e monta payload
+
+Se LOGGER=ON e LOGGER_MODE=ASYNC:
+
+publicar na fila
+
+não escrever no Mongo dentro do request
+
+Se publish falhar:
+
+estratégia recomendada: fallback para stdout + “best effort”
+
+opcional: fallback SYNC (escreve direto no Mongo) — mas isso volta a gerar gargalo
+
+Sugestão de modos (pra ficar claro)
+
+LOGGER_MODE=ASYNC: publica na fila (padrão)
+
+LOGGER_MODE=SYNC: escreve direto no Mongo (debug)
+
+LOGGER_MODE=DISABLE: não grava (mas pode logar no console)
+
+Checkpoint Q5 — Consumer (worker) para gravar no Mongo
+
+Criar serviço logger-consumer (processo separado)
+
+Ao iniciar:
+
+conecta no Rabbit
+
+consome logs.queue
+
+valida schema mínimo da mensagem
+
+grava na collection request_logs
+
+Ack/Nack correto:
+
+sucesso: ack
+
+falha temporária (Mongo fora): nack com requeue (cuidado com loop)
+
+falha definitiva (mensagem inválida): mandar para DLQ
+
+Checkpoint Q6 — DLQ + retry controlado
+
+Configurar Dead Letter Exchange/Queue:
+
+logs.dlx + logs.dlq
+
+Retry com limite:
+
+usar header x-death do RabbitMQ para contar tentativas
+
+após N tentativas, mandar para DLQ
+
+Criar endpoint/admin simples:
+
+GET /logs/dlq (opcional) ou script pra inspecionar
+
+Checkpoint Q7 — Toggle do consumer via env LOGGER
+
+LOGGER=OFF:
+
+consumer nem inicia (no compose, escala 0 ou não sobe o serviço)
+
+middleware decide o que fazer:
+
+LOGGER_MODE=DISABLE (não grava)
+
+ou SYNC (grava direto)
+
+Documentar no README:
+
+como ligar/desligar
+
+como rodar consumer separado
+
+Checkpoint Q8 — Métricas mínimas de saúde do pipeline
+
+Health check do Rabbit (no app e no consumer)
+
+Logar tamanho da fila (opcional)
+
+Alarmes manuais: se DLQ crescer, tem bug/instabilidade

@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import motor.motor_asyncio
 from pymongo import ASCENDING, DESCENDING
@@ -21,6 +21,9 @@ def get_client() -> motor.motor_asyncio.AsyncIOMotorClient:
 def get_db():
     return get_client()[settings.mongo_db]
 
+def get_logs_db():
+    return get_client()[settings.mongo_logs_db]
+
 
 async def ensure_indexes(db) -> None:
     person = db["person"]
@@ -32,6 +35,46 @@ async def ensure_indexes(db) -> None:
     )
 
     await person.create_index(
-        [("created_at", DESCENDING)],
-        name="idx_person_created_at",
+        [("createdAt", DESCENDING)],
+        name="idx_person_createdAt",
     )
+
+    api_keys = db["api_keys"]
+    await api_keys.create_index(
+        [("keyHash", ASCENDING)],
+        unique=True,
+        name="uniq_api_key_hash",
+    )
+    await api_keys.create_index(
+        [("status", ASCENDING), ("createdAt", DESCENDING)],
+        name="idx_api_keys_status_createdAt",
+    )
+
+
+async def ensure_log_indexes(db) -> None:
+    logs = db["request_logs"]
+
+    await logs.create_index(
+        [("requestTime", DESCENDING)],
+        name="idx_logs_requestTime",
+    )
+
+    await logs.create_index(
+        [("statusCode", ASCENDING), ("requestTime", DESCENDING)],
+        name="idx_logs_status_requestTime",
+    )
+
+    await logs.create_index(
+        [("method", ASCENDING), ("url", ASCENDING), ("requestTime", DESCENDING)],
+        name="idx_logs_method_url_requestTime",
+    )
+
+    ttl_days = settings.log_ttl_days
+    if ttl_days and ttl_days > 0:
+        await logs.create_index(
+            [("requestTime", ASCENDING)],
+            expireAfterSeconds=ttl_days * 86400,
+            name="idx_logs_requestTime_ttl",
+        )
+
+
