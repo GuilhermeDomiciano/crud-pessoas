@@ -1,133 +1,156 @@
-3) RabbitMQ (fila) para escrita assíncrona dos Logs
+Checkpoints — Implementar cache com Redis (cache-aside) no seu backend
+Checkpoint R1 — Infra Redis + env flags
 
-Objetivo fixo (o seu): middleware publica mensagem; consumer grava no Mongo (logs DB). Consumer liga/desliga por LOGGER (default ON).
+Adicionar Redis no docker-compose.yml
 
-Checkpoint Q1 — Infra RabbitMQ + docker-compose
+Variáveis no .env.example:
 
-Adicionar RabbitMQ no docker-compose.yml (com management UI)
+REDIS_URL=redis://redis:6379/0
 
-Variáveis .env:
+CACHE=ON|OFF (default OFF ou ON, você decide)
 
-RABBITMQ_URL=amqp://...
+CACHE_TTL_PERSON_SECONDS=300
 
-LOGGER=ON|OFF (default ON)
+CACHE_TTL_LIST_SECONDS=60
 
-LOGGER_MODE=ASYNC|SYNC|DISABLE (recomendado; explica abaixo)
+Criar módulo cache/redis_client.py com:
 
-Biblioteca de AMQP (ex.: aio-pika se async)
+singleton de conexão
 
-Checkpoint Q2 — Definir contrato da mensagem de log (schema)
+startup/shutdown
 
-Mensagem JSON contendo exatamente o que você quer salvar:
+ping no health
 
-requestTime, responseTime, method, url, statusCode, userAgent, body, params, query, __v
+Checkpoint R2 — API de cache (wrapper) pra não espalhar Redis no código
 
-recomendado: durationMs, requestId, ip
+Criar cache/cache_service.py com funções:
 
-Mascarar/limitar:
+get_json(key) -> dict | None
 
-remover/mascarar Authorization, X-API-Key, senhas
+set_json(key, value, ttl)
 
-truncar body acima de X KB
+delete(key)
 
-Checkpoint Q3 — Exchange/Queue durável + persistência
+incr(key) (pra versionamento)
 
-Criar:
+Serialização consistente (JSON) e compressão opcional (deixa pra depois)
 
-Exchange (ex.: logs.exchange, type direct)
+Checkpoint R3 — Estratégia de keys (nada de key aleatória)
 
-Queue (ex.: logs.queue, durable)
+Key para pessoa:
 
-Routing key (ex.: logs.write)
+person:{personId}
 
-Publicar mensagem como persistente (pra não perder em restart)
+Key para listas/queries (com versionamento pra invalidar sem varrer Redis):
 
-Confirm publisher (garantir que Rabbit aceitou)
+persons:list:v{ver}:{hash(query)}
 
-Checkpoint Q4 — Middleware de logs publica mensagem (sem travar request)
+Key de versão:
 
-Middleware captura request/response e monta payload
+persons:list:ver (int)
 
-Se LOGGER=ON e LOGGER_MODE=ASYNC:
+Hash do query: gerar a partir de params normalizados (limit, skip, name, email, sort, etc.)
 
-publicar na fila
+Checkpoint R4 — Cache de leitura (read-through / cache-aside)
 
-não escrever no Mongo dentro do request
+Aplicar no service/usecase, não no router.
 
-Se publish falhar:
+GET /persons/{id}:
 
-estratégia recomendada: fallback para stdout + “best effort”
+se CACHE=OFF → busca no Mongo direto
 
-opcional: fallback SYNC (escreve direto no Mongo) — mas isso volta a gerar gargalo
+se CACHE=ON:
 
-Sugestão de modos (pra ficar claro)
+tenta GET person:{id}
 
-LOGGER_MODE=ASYNC: publica na fila (padrão)
+se hit → retorna
 
-LOGGER_MODE=SYNC: escreve direto no Mongo (debug)
+se miss → busca no Mongo, SET com TTL, retorna
 
-LOGGER_MODE=DISABLE: não grava (mas pode logar no console)
+GET /persons (lista + filtros):
 
-Checkpoint Q5 — Consumer (worker) para gravar no Mongo
+monta queryKey = persons:list:v{ver}:{hash(query)}
 
-Criar serviço logger-consumer (processo separado)
+tenta cache; se miss busca Mongo e salva com TTL menor
 
-Ao iniciar:
+Regras:
 
-conecta no Rabbit
+Não cachear erro (404/500)
 
-consome logs.queue
+TTL curto pra lista, maior pra item
 
-valida schema mínimo da mensagem
+Checkpoint R5 — Invalidação no write (sem frescura)
 
-grava na collection request_logs
+Em toda mutação de pessoa, invalidar item e listas:
 
-Ack/Nack correto:
+Após POST /persons:
 
-sucesso: ack
+delete person:{newId} (opcional, geralmente nem existe)
 
-falha temporária (Mongo fora): nack com requeue (cuidado com loop)
+incr persons:list:ver
 
-falha definitiva (mensagem inválida): mandar para DLQ
+Após PATCH /persons/{id} e DELETE /persons/{id}:
 
-Checkpoint Q6 — DLQ + retry controlado
+delete person:{id}
 
-Configurar Dead Letter Exchange/Queue:
+incr persons:list:ver
 
-logs.dlx + logs.dlq
+Após endpoints de subdocs (addresses e phones):
 
-Retry com limite:
+delete person:{id}
 
-usar header x-death do RabbitMQ para contar tentativas
+incr persons:list:ver
 
-após N tentativas, mandar para DLQ
+Isso resolve listas sem precisar SCAN/DEL por padrão.
 
-Criar endpoint/admin simples:
+Checkpoint R6 — Proteções mínimas (pra não virar fonte de bug)
 
-GET /logs/dlq (opcional) ou script pra inspecionar
+Timeout curto no Redis (ex.: 50–150ms)
 
-Checkpoint Q7 — Toggle do consumer via env LOGGER
+Falha no Redis não quebra a API:
 
-LOGGER=OFF:
+se Redis cair: loga e faz fallback Mongo
 
-consumer nem inicia (no compose, escala 0 ou não sobe o serviço)
+se SET falhar: ignora
 
-middleware decide o que fazer:
+Key namespace (ex.: prefixo app:) pra evitar conflito:
 
-LOGGER_MODE=DISABLE (não grava)
+app:person:{id}, app:persons:list:...
 
-ou SYNC (grava direto)
+Checkpoint R7 — Endpoint/observabilidade do cache (debug)
 
-Documentar no README:
+GET /cache/health (ou incluir no /health)
 
-como ligar/desligar
+mostra redis=ok|down, cache=on|off
 
-como rodar consumer separado
+(Opcional) contador simples:
 
-Checkpoint Q8 — Métricas mínimas de saúde do pipeline
+cache_hits, cache_misses por endpoint (só log já serve)
 
-Health check do Rabbit (no app e no consumer)
+Checkpoint R8 — Ajuste fino de TTL e payload
 
-Logar tamanho da fila (opcional)
+Se PersonOut for grande, cachear só o que retorna na API (não doc cru do Mongo)
 
-Alarmes manuais: se DLQ crescer, tem bug/instabilidade
+Revisar TTL:
+
+pessoa: 5–15 min
+
+lista: 30–120s
+
+(Opcional) “stale-while-revalidate” fica pra depois
+
+Onde aplicar primeiro (impacto real)
+
+GET /persons/{id} (maior ganho, invalidação simples)
+
+GET /persons com filtros/paginação (gargalo comum)
+
+Armadilhas que você deve evitar
+
+Cachear lista sem versionamento (vai ficar servindo dado velho)
+
+Invalidar lista com DEL por pattern (vai doer quando crescer)
+
+Cachear resposta que depende de auth/escopo sem incluir isso na key
+
+Se você quiser, eu te passo o contrato exato de hash(query) e um exemplo de “normalização de query” (ordenar keys, remover valores vazios, etc.) pra não gerar keys diferentes pro mesmo filtro.

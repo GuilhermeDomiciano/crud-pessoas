@@ -11,6 +11,7 @@ from db.database import (
     get_logs_db,
 )
 from messaging.rabbitmq import close_rabbitmq, init_rabbitmq
+from cache.redis_client import close_redis, init_redis
 from middleware.request_logger import RequestLoggerMiddleware
 from routers.addresses_route import router as address_router
 from routers.auth_route import router as auth_router
@@ -27,9 +28,11 @@ db = get_db()
 async def lifespan(app: FastAPI):
     await ensure_indexes(db)
     await ensure_log_indexes(get_logs_db())
+    await init_redis()
     await init_rabbitmq()
     yield
     get_client().close()
+    await close_redis()
     await close_rabbitmq()
 
 

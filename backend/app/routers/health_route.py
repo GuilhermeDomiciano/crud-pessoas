@@ -1,5 +1,6 @@
 ﻿from fastapi import APIRouter
 
+from cache.redis_client import ping_redis
 from db.database import get_client
 from messaging.rabbitmq import ping_rabbitmq
 from settings import settings
@@ -20,6 +21,10 @@ async def ping():
         status["db"] = "ok"
     except Exception:
         status["db"] = "error"
+    if not settings.redis_url:
+        status["redis"] = "disabled"
+    else:
+        status["redis"] = "ok" if await ping_redis() else "error"
     if not settings.rabbitmq_url:
         status["rabbitmq"] = "disabled"
     else:

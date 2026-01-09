@@ -22,6 +22,17 @@ class Settings(BaseSettings):
     logger: str = Field(default="ON", validation_alias="LOGGER")
     logger_mode: str = Field(default="ASYNC", validation_alias="LOGGER_MODE")
 
+    redis_url: str | None = Field(default=None, validation_alias="REDIS_URL")
+    cache: str = Field(default="OFF", validation_alias="CACHE")
+    cache_ttl_person_seconds: int = Field(
+        default=300,
+        validation_alias="CACHE_TTL_PERSON_SECONDS",
+    )
+    cache_ttl_list_seconds: int = Field(
+        default=60,
+        validation_alias="CACHE_TTL_LIST_SECONDS",
+    )
+
     auth_mode: str = Field(default="OFF", validation_alias="AUTH_MODE")
     jwt_secret: str | None = Field(default=None, validation_alias="JWT_SECRET")
     jwt_alg: str = Field(default="HS256", validation_alias="JWT_ALG")
