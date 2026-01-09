@@ -1,16 +1,16 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 import logging
 from typing import Any
 
 from aio_pika import DeliveryMode, ExchangeType, Message, connect_robust
-from aiormq.exceptions import ChannelPreconditionFailed
 from aio_pika.abc import (
     AbstractRobustChannel,
     AbstractRobustConnection,
     AbstractRobustExchange,
 )
+from aiormq.exceptions import ChannelPreconditionFailed
 
 from settings import settings
 
@@ -120,6 +120,19 @@ async def close_rabbitmq() -> None:
     _exchange = None
 
 
+async def ping_rabbitmq() -> bool:
+    if not settings.rabbitmq_url:
+        return False
+    if _connection is not None and not _connection.is_closed:
+        return True
+    try:
+        connection = await connect_robust(settings.rabbitmq_url)
+        await connection.close()
+        return True
+    except Exception:
+        return False
+
+
 async def publish_log_message(payload: dict[str, Any]) -> None:
     await init_rabbitmq()
     if _exchange is None:
@@ -131,3 +144,5 @@ async def publish_log_message(payload: dict[str, Any]) -> None:
         delivery_mode=DeliveryMode.PERSISTENT,
     )
     await _exchange.publish(message, routing_key=LOG_ROUTING_KEY, mandatory=True)
+
+

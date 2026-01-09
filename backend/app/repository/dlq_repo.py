@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 from typing import Any
@@ -41,3 +41,5 @@ class DlqRepository:
 
 def get_dlq_repository() -> DlqRepository:
     return DlqRepository()
+
+

@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from datetime import date, datetime
 
@@ -66,3 +66,4 @@ class PersonInDB(BaseModel):
     updatedAt: datetime = Field(default_factory=now_utc)
     version: int = 1
     deletedAt: datetime | None = None
+

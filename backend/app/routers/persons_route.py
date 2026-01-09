@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+﻿from fastapi import APIRouter, Depends, Query
 
 from auth.dependencies import require_scopes
 from model.person import PersonCreate, PersonOut, PersonUpdate
@@ -62,3 +62,5 @@ async def deletar_pessoa(
 ):
     await service.deletar_pessoa(id)
     return {"message": "Pessoa removida com sucesso."}
+
+

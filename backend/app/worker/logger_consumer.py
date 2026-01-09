@@ -1,8 +1,9 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import asyncio
 import json
 import logging
+import sys
 from typing import Any
 
 from aio_pika import DeliveryMode, ExchangeType, Message, connect_robust
@@ -16,12 +17,13 @@ from messaging.rabbitmq import (
     DLX_NAME,
     LOG_EXCHANGE_NAME,
     LOG_QUEUE_NAME,
+    LOG_RETRY_DELAY_MS,
     LOG_RETRY_EXCHANGE_NAME,
     LOG_RETRY_QUEUE_NAME,
     LOG_RETRY_ROUTING_KEY,
-    LOG_RETRY_DELAY_MS,
     LOG_ROUTING_KEY,
     _declare_queue_with_recreate,
+    ping_rabbitmq,
 )
 from model.log_message import LogMessage
 from settings import settings
@@ -166,4 +168,8 @@ async def main() -> None:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
+    if "--healthcheck" in sys.argv:
+        ok = asyncio.run(ping_rabbitmq())
+        sys.exit(0 if ok else 1)
     asyncio.run(main())
+

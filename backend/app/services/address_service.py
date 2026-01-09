@@ -1,4 +1,4 @@
-from fastapi import Depends
+﻿from fastapi import Depends
 
 from errors import bad_request, not_found
 from model.address import AddressBase, AddressOut, AddressUpdate
@@ -52,3 +52,5 @@ def get_address_service(
     repo: AddressRepository = Depends(get_address_repository),
 ) -> AddressService:
     return AddressService(repo)
+
+

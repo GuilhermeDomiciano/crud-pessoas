@@ -1,4 +1,4 @@
-from datetime import UTC, date, datetime
+﻿from datetime import UTC, date, datetime
 
 from bson import ObjectId
 from fastapi import Depends
@@ -116,3 +116,5 @@ class PersonRepository:
 
 def get_person_repository(db=Depends(get_db)) -> PersonRepository:
     return PersonRepository(db)
+
+

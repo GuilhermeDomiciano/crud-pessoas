@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 import logging
@@ -63,7 +63,11 @@ class RequestLoggerMiddleware(BaseHTTPMiddleware):
             requestId=request_id,
             logVersion=1,
         )
-        log_doc = log_message.model_dump(by_alias=True, exclude_none=True)
+        log_doc = log_message.model_dump(
+            by_alias=True,
+            exclude_none=True,
+            mode="json",
+        )
 
         if settings.logger.upper() != "ON":
             return response
@@ -86,9 +90,16 @@ class RequestLoggerMiddleware(BaseHTTPMiddleware):
             try:
                 logger.error(
                     "Failed to publish log message, payload=%s",
-                    json.dumps(log_doc, ensure_ascii=True, separators=(",", ":")),
+                    json.dumps(
+                        log_doc,
+                        ensure_ascii=True,
+                        separators=(",", ":"),
+                        default=str,
+                    ),
                 )
             except Exception:
                 logger.exception("Failed to publish log message")
 
         return response
+
+

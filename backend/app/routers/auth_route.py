@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -29,3 +29,5 @@ async def emitir_token(payload: TokenRequest):
     extra = {"scopes": roles} if roles else None
     token = encode_jwt(subject=settings.auth_user, extra=extra)
     return {"access_token": token, "token_type": "bearer"}
+
+

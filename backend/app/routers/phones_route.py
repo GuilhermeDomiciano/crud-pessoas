@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+﻿from fastapi import APIRouter, Depends
 
 from auth.dependencies import require_scopes
 from model.phone import PhoneBase, PhoneOut, PhoneUpdate
@@ -43,3 +43,5 @@ async def deletar_telefone(
 ):
     await service.deletar_telefone(id, phoneId)
     return {"message": "Telefone removido com sucesso."}
+
+

@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
 
@@ -72,3 +72,5 @@ async def listar_logs_pessoa(
         event_type=eventType,
         person_id=id,
     )
+
+

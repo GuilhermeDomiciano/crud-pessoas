@@ -1,4 +1,4 @@
-from contextlib import asynccontextmanager
+﻿from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -66,3 +66,5 @@ app.include_router(persons_router)
 app.include_router(address_router)
 app.include_router(phones_router)
 app.include_router(logs_router)
+
+

@@ -97,7 +97,7 @@ Rodar o consumer separado:
 
 ```bash
 cd backend
-python -m app.worker.logger_consumer
+python app/worker/logger_consumer.py
 ```
 
 ## Endpoints

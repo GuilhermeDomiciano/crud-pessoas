@@ -1,6 +1,8 @@
-from fastapi import APIRouter
+﻿from fastapi import APIRouter
 
 from db.database import get_client
+from messaging.rabbitmq import ping_rabbitmq
+from settings import settings
 
 router = APIRouter(prefix="/health", tags=["health"])
 
@@ -18,4 +20,16 @@ async def ping():
         status["db"] = "ok"
     except Exception:
         status["db"] = "error"
+    if not settings.rabbitmq_url:
+        status["rabbitmq"] = "disabled"
+    else:
+        status["rabbitmq"] = "ok" if await ping_rabbitmq() else "error"
     return status
+
+
+@router.get("/rabbit")
+async def rabbit():
+    if not settings.rabbitmq_url:
+        return {"rabbitmq": "disabled"}
+    return {"rabbitmq": "ok" if await ping_rabbitmq() else "error"}
+

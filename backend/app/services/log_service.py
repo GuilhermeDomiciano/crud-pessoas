@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from datetime import datetime
 
@@ -78,3 +78,5 @@ class LogService:
         items = [self._doc_to_public(doc) for doc in docs]
         next_cursor = self._make_cursor(docs[-1]) if docs else None
         return {"items": items, "nextCursor": next_cursor}
+
+

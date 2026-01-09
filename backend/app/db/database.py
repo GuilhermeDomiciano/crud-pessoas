@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import motor.motor_asyncio
 from pymongo import ASCENDING, DESCENDING
@@ -76,3 +76,5 @@ async def ensure_log_indexes(db) -> None:
             expireAfterSeconds=ttl_days * 86400,
             name="idx_logs_requestTime_ttl",
         )
+
+

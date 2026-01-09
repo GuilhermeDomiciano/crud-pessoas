@@ -1,4 +1,4 @@
-from bson import ObjectId
+﻿from bson import ObjectId
 from fastapi import Depends
 from pydantic import ValidationError
 from pymongo import ReturnDocument
@@ -101,3 +101,5 @@ class AddressRepository:
 
 def get_address_repository(db=Depends(get_db)) -> AddressRepository:
     return AddressRepository(db)
+
+

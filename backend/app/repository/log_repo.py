@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from db.database import get_logs_db
 
@@ -18,3 +18,5 @@ class LogRepository:
 
 def get_log_repository() -> LogRepository:
     return LogRepository()
+
+

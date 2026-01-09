@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -26,3 +26,5 @@ def decode_jwt(token: str) -> dict[str, Any]:
     if not settings.jwt_secret:
         raise ValueError("JWT_SECRET is not configured")
     return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_alg])
+
+

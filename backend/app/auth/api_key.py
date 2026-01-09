@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import hashlib
 import hmac
@@ -40,3 +40,5 @@ async def is_valid_api_key(key: str | None) -> bool:
     if settings.api_keys:
         return _is_valid_api_key_env(key)
     return await _is_valid_api_key_db(key)
+
+

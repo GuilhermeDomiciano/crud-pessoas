@@ -1,4 +1,4 @@
-from fastapi import Depends
+﻿from fastapi import Depends
 
 from errors import bad_request, not_found
 from model.phone import PhoneBase, PhoneOut, PhoneUpdate
@@ -51,3 +51,5 @@ def get_phone_service(
     repo: PhoneRepository = Depends(get_phone_repository),
 ) -> PhoneService:
     return PhoneService(repo)
+
+

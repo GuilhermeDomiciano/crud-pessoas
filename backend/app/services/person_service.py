@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException
+﻿from fastapi import Depends, HTTPException
 from pymongo.errors import DuplicateKeyError
 
 from errors import bad_request, conflict, not_found, server_error
@@ -83,3 +83,5 @@ def get_person_service(
     repo: PersonRepository = Depends(get_person_repository),
 ) -> PersonService:
     return PersonService(repo)
+
+

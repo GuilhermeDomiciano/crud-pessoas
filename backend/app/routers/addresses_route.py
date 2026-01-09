@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+﻿from fastapi import APIRouter, Depends
 
 from auth.dependencies import require_scopes
 from model.address import AddressBase, AddressOut, AddressUpdate
@@ -44,3 +44,5 @@ async def deletar_endereco(
 ):
     await service.deletar_endereco(id, addressId)
     return {"message": "Endereço removido com sucesso."}
+
+
