@@ -1,31 +1,57 @@
 # CRUD Pessoas - Backend
 
-API FastAPI para cadastro de pessoas com MongoDB.
+API FastAPI para cadastro de pessoas com MongoDB, logs em banco separado (com RabbitMQ opcional), e cache Redis (cache-aside).
 
-## Como rodar
+## Por que esse projeto existe
 
-1) Suba o MongoDB (opcional se ja tiver um rodando):
+Este projeto foi desenhado para treinar observabilidade e boas praticas de API:
+- Modelos ricos com subdocumentos (endereços, telefones)
+- Logs estruturados em DB separado
+- Pipeline async com RabbitMQ
+- Cache Redis com invalidação simples
+- Autenticação (API Key / JWT) e scopes
+
+## Stack
+
+- FastAPI + Uvicorn
+- MongoDB + Motor (async)
+- Redis (cache)
+- RabbitMQ (fila de logs)
+- Pydantic v2
+- PyJWT
+- Ruff + MyPy (opcional)
+- Pytest + httpx
+
+## Arquitetura (pasta app)
+
+- `routers/` - rotas HTTP
+- `services/` - regras de negocio
+- `repository/` - acesso ao Mongo
+- `model/` - schemas Pydantic
+- `middleware/` - logging de request
+- `auth/` - JWT + API Key
+- `cache/` - Redis client + chaves
+- `messaging/` - RabbitMQ
+- `worker/` - consumer de logs
+
+## Como rodar (local)
+
+1) Suba dependências:
 
 ```bash
 docker compose up -d
 ```
 
-Se quiser usar o pipeline assíncrono de logs, suba o RabbitMQ também (ele já está no compose):
-
-```bash
-docker compose up -d rabbitmq
-```
-
-2) Instale dependencias:
+2) Instale dependências:
 
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
-3) Configure o arquivo `.env` em `backend/.env` (veja abaixo).
+3) Configure `.env` em `backend/.env` (use o `.env.example` como base).
 
-4) Inicie a API:
+4) Suba a API:
 
 ```bash
 cd backend
@@ -34,87 +60,72 @@ uvicorn main:app --app-dir app --reload
 
 API: `http://localhost:8000`
 
-## Variaveis de ambiente
+Swagger: `http://localhost:8000/docs`
+
+## Variáveis de ambiente (principais)
 
 Arquivo: `backend/.env`
 
-- `MONGODB_URI` (obrigatoria) - string de conexao do MongoDB.
-- `MONGODB_DB` (opcional) - nome do banco, padrao `personal_db`.
-- `MONGODB_LOGS_DB` (opcional) - nome do banco de logs, padrao `app_logs`.
-- `LOG_TTL_DAYS` (opcional) - dias para expirar logs, padrao `30`.
-- `LOG_BODY_MAX_BYTES` (opcional) - limite de bytes do body logado, padrao `10240`.
-- `RABBITMQ_URL` (opcional) - URL do RabbitMQ (ex.: `amqp://guest:guest@localhost:5672/`).
-- `LOGGER` (opcional) - `ON` ou `OFF` para ativar/desativar logs, padrao `ON`.
-- `LOGGER_MODE` (opcional) - `ASYNC`, `SYNC` ou `DISABLE`.
-  - `ASYNC`: publica na fila RabbitMQ (padrao).
-  - `SYNC`: grava direto no Mongo (debug).
-  - `DISABLE`: nao grava (pode logar no console).
-- `AUTH_MODE` (opcional) - `OFF`, `API_KEY`, `JWT` ou `BOTH`.
-- `JWT_SECRET` (obrigatoria se `AUTH_MODE=JWT`/`BOTH`).
-- `JWT_ALG` (opcional) - algoritmo JWT, padrao `HS256`.
-- `JWT_EXPIRES_MIN` (opcional) - expira em minutos, padrao `60`.
-- `API_KEYS` (opcional) - lista separada por virgula (ex.: `key1,key2`).
-  - Suporta multiplas chaves ativas (rotacao).
-  - Se nao estiver definido, a API usa a collection `api_keys` no Mongo.
-- `AUTH_USER` (opcional) - usuario simples para emitir token.
-- `AUTH_PASSWORD` (opcional) - senha simples para emitir token.
-- `AUTH_ROLES` (opcional) - roles separadas por virgula (ex.: `admin,reader`).
-- `APP_HOST` (opcional) - usado apenas no exemplo de `.env`.
-- `APP_PORT` (opcional) - usado apenas no exemplo de `.env`.
+### Mongo
+- `MONGODB_URI` (obrigatoria)
+- `MONGODB_DB` (padrão `personal_db`)
+- `MONGODB_LOGS_DB` (padrão `app_logs`)
 
-Exemplo:
+### Logs
+- `LOG_TTL_DAYS` (padrão `30`)
+- `LOG_BODY_MAX_BYTES` (padrão `10240`)
+- `LOGGER=ON|OFF`
+- `LOGGER_MODE=ASYNC|SYNC|DISABLE`
+- `RABBITMQ_URL` (ex.: `amqp://guest:guest@localhost:5672/`)
 
-```
-MONGODB_URI=mongodb://root:root@localhost:27017/personal_db?authSource=admin
-MONGODB_DB=personal_db
-MONGODB_LOGS_DB=app_logs
-LOG_TTL_DAYS=30
-LOG_BODY_MAX_BYTES=10240
-RABBITMQ_URL=amqp://guest:guest@localhost:5672/
-LOGGER=ON
-LOGGER_MODE=ASYNC
-AUTH_MODE=OFF
-JWT_SECRET=5565be7f86e171ec332bf2f30b6f0d3b944a389fc7168b663e693e1b73be69d8
-JWT_ALG=HS256
-JWT_EXPIRES_MIN=60
-API_KEYS=ff63d8d424ad4fff9604b5db91b4da9d,461da3c1d087495389af86c10e492fa4
-AUTH_USER=admin
-AUTH_PASSWORD=admin
-AUTH_ROLES=admin
-APP_HOST=0.0.0.0
-APP_PORT=8000
-```
+### Cache
+- `REDIS_URL` (host: `redis://localhost:6379/0`)
+- `CACHE=ON|OFF`
+- `CACHE_TTL_PERSON_SECONDS` (padrão `600`)
+- `CACHE_TTL_LIST_SECONDS` (padrão `60`)
+- `REDIS_TIMEOUT_MS` (padrão `150`)
 
-## Logs (RabbitMQ)
+### Auth
+- `AUTH_MODE=OFF|API_KEY|JWT|BOTH`
+- `API_KEYS` (lista separada por virgula)
+- `JWT_SECRET`, `JWT_ALG`, `JWT_EXPIRES_MIN`
+- `AUTH_USER`, `AUTH_PASSWORD`, `AUTH_ROLES`
 
-Ative ou desative o pipeline assíncrono via env:
-
-- `LOGGER=ON` e `LOGGER_MODE=ASYNC` publica na fila.
-- `LOGGER=ON` e `LOGGER_MODE=SYNC` grava direto no Mongo (debug).
-- `LOGGER=OFF` ou `LOGGER_MODE=DISABLE` não grava.
-
-Rodar o consumer separado:
-
-```bash
-cd backend
-python app/worker/logger_consumer.py
-```
-
-## Endpoints
+## Endpoints (resumo)
 
 Base URL: `http://localhost:8000`
 
-- `GET /` - mensagem de boas-vindas.
-- `GET /health/` - healthcheck da API.
-- `GET /health/ping` - healthcheck com ping no MongoDB.
+### Pessoas
+- `POST /persons/`
+- `GET /persons/`
+- `GET /persons/{id}`
+- `PATCH /persons/{id}`
+- `DELETE /persons/{id}`
 
-- `POST /persons/` - cria pessoa.
-- `GET /persons/` - lista pessoas (query: `skip`, `limit`, `firstName`, `lastName`, `email`).
-- `GET /persons/{id}` - busca por id.
-- `PATCH /persons/{id}` - update parcial.
-- `DELETE /persons/{id}` - remove pessoa.
+### Subdocs (endereços e telefones)
+- `POST /persons/{id}/addresses`
+- `PATCH /persons/{id}/addresses/{addressId}`
+- `DELETE /persons/{id}/addresses/{addressId}`
 
-## Exemplos de payload
+- `POST /persons/{id}/phones`
+- `PATCH /persons/{id}/phones/{phoneId}`
+- `DELETE /persons/{id}/phones/{phoneId}`
+
+### Auth
+- `POST /auth/token`
+
+### Logs
+- `GET /logs`
+- `GET /persons/{id}/logs`
+- `GET /logs/dlq`
+
+### Health
+- `GET /health/`
+- `GET /health/ping`
+- `GET /health/rabbit`
+- `GET /health/cache`
+
+## Payloads de exemplo
 
 Criar pessoa:
 
@@ -148,8 +159,67 @@ Update parcial:
 }
 ```
 
-Filtro de lista (exemplo):
+## Autenticação (resumo)
 
+- API Key: header `X-API-Key: <key>`
+- JWT: header `Authorization: Bearer <token>`
+
+Scopes:
+- `persons:read`
+- `persons:write`
+
+## Logs (RabbitMQ)
+
+Modo recomendado:
+- `LOGGER=ON`
+- `LOGGER_MODE=ASYNC`
+
+Rodar consumer:
+
+```bash
+cd backend
+python app/worker/logger_consumer.py
 ```
-GET /persons/?skip=0&limit=20&firstName=maria&email=@example.com
+
+Health Rabbit:
+- `GET /health/rabbit`
+
+## Cache (Redis)
+
+Ativar cache:
+- `CACHE=ON`
+
+Health Cache:
+- `GET /health/cache`
+
+Ver chaves no Redis:
+
+```bash
+docker exec -it redis_local redis-cli
+keys app:*
 ```
+
+## Testes
+
+```bash
+cd backend
+pytest
+```
+
+## Troubleshooting rapido
+
+- Redis no host: `REDIS_URL=redis://localhost:6379/0`
+- Redis no Docker: `REDIS_URL=redis://redis:6379/0`
+- Rabbit precondition failed: apague filas antigas no painel do Rabbit (Queues)
+- Logs não aparecem: confira `LOGGER`, `LOGGER_MODE` e se o consumer esta rodando
+
+## Proximos passos (ideias)
+
+- Cache em escrita (warm-up)
+- Observabilidade com métricas
+- Rate limit
+- Usuários reais + refresh token
+
+---
+
+Se quiser um walkthrough completo (arquitetura + fluxo de dados), me chama.
